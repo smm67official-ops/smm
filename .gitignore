@@ -1,0 +1,38 @@
+# --- Dépendances -------------------------------------------------------
+node_modules
+.pnp
+.pnp.js
+
+# --- Build -------------------------------------------------------------
+.next
+out
+build
+dist
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Environnement -----------------------------------------------------
+# `.env.local` contient la clé service_role Supabase et la clé du
+# fournisseur SMM : elle ne doit jamais quitter la machine.
+# Seul `.env.local.example`, avec des valeurs factices, est versionné.
+.env
+.env.*
+!.env.local.example
+
+# --- Déploiement -------------------------------------------------------
+.vercel
+
+# --- Outils de test et d'audit ----------------------------------------
+# Captures produites par `npm run audit:shots`.
+.shots/
+playwright-report/
+test-results/
+coverage/
+
+# --- Journaux et divers ------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db

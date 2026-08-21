@@ -1,0 +1,250 @@
+/* =========================================================
+   Surose — surcouche Next.js
+   Remplace les comportements jQuery du thème d'origine
+   (meanmenu, slick, fancybox) sans toucher à style.css.
+   ========================================================= */
+
+:root {
+  --tm-navbar-h: 61px;
+  --tm-theme: #f2ba59;
+  --tm-secondary: #13788a;
+  --tm-heading: #000000;
+  --tm-body: #707070;
+  --tm-border: #ebebeb;
+}
+
+/* Le bandeau de navigation est en position absolue (top: 100%) :
+   le contenu qui suit doit être décalé d'autant. */
+.tm-heroslider-area,
+.tm-breadcrumb-area {
+  margin-top: var(--tm-navbar-h);
+}
+
+/* ---------------------------------------------------------
+   Hero slider (remplace slick)
+   --------------------------------------------------------- */
+.tm-heroslider-slider {
+  position: relative;
+  overflow: hidden;
+}
+
+.tm-heroslider-slider .tm-heroslider {
+  display: none !important;
+  min-height: 520px;
+}
+
+.tm-heroslider-slider .tm-heroslider.is-current {
+  display: flex !important;
+}
+
+.tm-heroslider-slider .tm-heroslider .tm-heroslider-content {
+  transform: translateX(-100%);
+  transition: transform 1s ease-in-out 0.3s;
+}
+
+.tm-heroslider-slider .tm-heroslider.is-current .tm-heroslider-content {
+  transform: translateX(0);
+}
+
+.tm-heroslider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 65px;
+  width: 65px;
+  border: none;
+  border-radius: 100px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #000000;
+  font-size: 36px;
+  line-height: 1;
+  z-index: 5;
+  transition: all 0.4s ease-in-out;
+}
+
+.tm-heroslider-nav:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.tm-heroslider-nav.is-prev { left: 50px; }
+.tm-heroslider-nav.is-next { right: 50px; }
+
+.tm-heroslider-dots {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 30px;
+  z-index: 5;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.tm-heroslider-dots li { list-style: none; }
+
+.tm-heroslider-dots button {
+  width: 30px;
+  height: 3px;
+  padding: 0;
+  border: none;
+  background: var(--tm-body);
+  transition: all 0.4s ease-in-out;
+}
+
+.tm-heroslider-dots button.is-active,
+.tm-heroslider-dots button:hover {
+  background: var(--tm-theme);
+}
+
+@media only screen and (max-width: 1600px) {
+  .tm-heroslider-nav { height: 50px; width: 50px; font-size: 26px; }
+  .tm-heroslider-nav.is-prev { left: 10px; }
+  .tm-heroslider-nav.is-next { right: 10px; }
+}
+
+@media only screen and (max-width: 1300px) {
+  .tm-heroslider-nav {
+    top: auto;
+    bottom: 20px;
+    transform: none;
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+  }
+  .tm-heroslider-nav.is-prev { left: auto; right: calc(50% + 10px); }
+  .tm-heroslider-nav.is-next { left: calc(50% + 10px); right: auto; }
+  .tm-heroslider-dots { display: none; }
+}
+
+@media only screen and (max-width: 767px) {
+  .tm-heroslider-slider .tm-heroslider { min-height: 380px; }
+}
+
+/* ---------------------------------------------------------
+   Navigation mobile (remplace meanmenu)
+   --------------------------------------------------------- */
+
+.tm-mobilemenu { display: none; }
+
+@media only screen and (max-width: 991px) {
+  .tm-header-bottomarea { display: none; }
+
+  .tm-heroslider-area,
+  .tm-breadcrumb-area { margin-top: 0; }
+
+  .tm-mobilemenu {
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    background: #f7f7f7;
+    transition: max-height 0.35s ease-in-out;
+  }
+
+  .tm-mobilemenu.is-open {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .tm-mobilemenu ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  .tm-mobilemenu li {
+    list-style: none;
+    position: relative;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .tm-mobilemenu > ul > li > a {
+    display: block;
+    padding: 12px 20px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: #000000;
+  }
+
+  .tm-mobilemenu ul ul li a {
+    display: block;
+    padding: 10px 20px 10px 40px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #707070;
+  }
+
+  .tm-mobilemenu a:hover { color: var(--tm-theme); }
+
+  .tm-mobilemenu-expand {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 48px;
+    height: 45px;
+    background: rgba(0, 0, 0, 0.04);
+    border: none;
+    color: #000000;
+    font-size: 16px;
+  }
+}
+
+/* ---------------------------------------------------------
+   Divers
+   --------------------------------------------------------- */
+
+/* Le thème masque les éléments animés en attendant ScrollMagic ;
+   IntersectionObserver prend le relais (voir ScrollAnim.tsx).
+   Filet de sécurité si JS est indisponible. */
+.no-js .tm-scrollanim { opacity: 1; }
+
+.tm-alert {
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-left: 3px solid var(--tm-theme);
+  background: #f7f7f7;
+  color: #111111;
+}
+
+.tm-alert-error {
+  border-left-color: #dd4b39;
+  color: #a5281a;
+}
+
+.tm-alert-success {
+  border-left-color: #2e9e5b;
+  color: #1d7040;
+}
+
+.tm-form-field button[disabled],
+.tm-button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tm-empty {
+  padding: 60px 0;
+  text-align: center;
+}
+
+.tm-empty i {
+  font-size: 60px;
+  color: var(--tm-border);
+  display: block;
+  margin-bottom: 20px;
+}
+
+/* Sélecteur natif stylé (remplace nice-select) */
+.tm-select {
+  height: 50px;
+  width: 100%;
+  padding: 0 15px;
+  border: 1px solid var(--tm-border);
+  background: #ffffff;
+  color: var(--tm-body);
+  font-size: 14px;
+}
+
+/* Grille produits : hauteur d'image homogène */
+.tm-product-images img { width: 100%; }

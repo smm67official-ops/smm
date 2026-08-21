@@ -1,0 +1,323 @@
+/* =========================================================
+   Layout de l'espace d'administration (design system SocialVault)
+   ========================================================= */
+
+.sv-admin {
+  display: flex;
+  min-height: 100vh;
+  background: var(--sv-bg);
+  font-family: var(--sv-font);
+}
+
+/* ---------- Sidebar ---------- */
+.sv-admin__sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  width: 256px;
+  flex: 0 0 256px;
+  height: 100vh;
+  padding: var(--sv-space-6) var(--sv-space-4);
+  background: var(--sv-surface);
+  border-inline-end: 1px solid var(--sv-border);
+}
+
+.sv-admin__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sv-space-1);
+}
+
+.sv-admin__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-3);
+  width: 100%;
+  padding: var(--sv-space-3) var(--sv-space-4);
+  border: none;
+  border-radius: var(--sv-radius-md);
+  background: transparent;
+  font-family: var(--sv-font);
+  font-size: var(--sv-text-sm);
+  font-weight: var(--sv-weight-medium);
+  color: var(--sv-text-secondary);
+  text-align: start;
+  cursor: pointer;
+  transition: var(--sv-transition);
+}
+
+.sv-admin__link:hover {
+  background: var(--sv-bg-secondary);
+  color: var(--sv-text);
+}
+
+.sv-admin__link.is-active {
+  background: var(--sv-info-soft);
+  color: var(--sv-primary);
+  font-weight: var(--sv-weight-semibold);
+}
+
+.sv-admin__sidebar-foot {
+  margin-top: auto;
+  padding-top: var(--sv-space-4);
+  border-top: 1px solid var(--sv-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sv-space-1);
+}
+
+/* ---------- Zone principale ---------- */
+.sv-admin__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sv-admin__topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--sv-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-4);
+  height: var(--sv-navbar-height);
+  padding-inline: var(--sv-space-6);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--sv-border);
+}
+
+/* Le composant Button impose son propre display : il faut forcer. */
+.sv-admin__burger { display: none !important; }
+
+.sv-admin__content {
+  padding: var(--sv-space-8) var(--sv-space-6) var(--sv-space-16);
+}
+
+.sv-admin__header {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sv-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sv-space-8);
+}
+
+.sv-admin__header h1 {
+  font-size: var(--sv-text-h2);
+  margin: 0;
+}
+
+.sv-admin__header p { margin: var(--sv-space-1) 0 0; }
+
+/* ---------- Barre de filtres ---------- */
+.sv-admin__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sv-space-6);
+}
+
+.sv-admin__toolbar .sv-field { margin: 0; }
+
+/* ---------- Détail de commande ---------- */
+.sv-detail-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--sv-space-6);
+  align-items: start;
+}
+
+.sv-deflist {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) 1fr;
+  gap: var(--sv-space-3) var(--sv-space-5);
+  font-size: var(--sv-text-sm);
+}
+
+.sv-deflist dt {
+  color: var(--sv-text-muted);
+  font-size: var(--sv-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--sv-tracking-wide);
+}
+
+.sv-deflist dd {
+  margin: 0;
+  color: var(--sv-text);
+  word-break: break-word;
+}
+
+.sv-timeline { display: flex; flex-direction: column; gap: var(--sv-space-4); }
+
+.sv-timeline__item {
+  display: flex;
+  gap: var(--sv-space-3);
+  padding-inline-start: var(--sv-space-4);
+  border-inline-start: 2px solid var(--sv-border);
+}
+
+.sv-timeline__item:last-child { border-color: var(--sv-primary); }
+
+/* ---------- Galerie de références ---------- */
+.sv-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sv-space-6);
+}
+
+.sv-reference img {
+  width: 100%;
+  display: block;
+  border-bottom: 1px solid var(--sv-border);
+  background: var(--sv-bg-secondary);
+}
+
+/* ---------- États vides ---------- */
+.sv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sv-space-3);
+  padding: var(--sv-space-16) var(--sv-space-6);
+  text-align: center;
+  color: var(--sv-text-secondary);
+}
+
+.sv-empty__icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sv-radius-full);
+  background: var(--sv-bg-secondary);
+  color: var(--sv-text-muted);
+}
+
+/* ---------- Identité dans la barre supérieure ---------- */
+.sv-admin__identity { text-align: end; line-height: 1.2; min-width: 0; }
+
+.sv-admin__identity-name {
+  font-size: var(--sv-text-sm);
+  font-weight: 600;
+  color: var(--sv-text);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Voile du tiroir ---------- */
+.sv-admin__scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  /* `inset: 0` seul ne suffit pas sur un <button> : Chrome le réduit
+     à sa hauteur de contenu. */
+  width: 100%;
+  height: 100%;
+  z-index: calc(var(--sv-z-modal) - 1);
+  border: none;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.45);
+  opacity: 0;
+  transition: opacity var(--sv-duration) var(--sv-ease);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+  .sv-admin__sidebar { width: 224px; flex-basis: 224px; }
+}
+
+@media (max-width: 1100px) {
+  .sv-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* Tablette : rail d'icônes, le libellé apparaît au survol */
+@media (min-width: 901px) and (max-width: 1024px) {
+  .sv-admin__sidebar {
+    width: 76px;
+    flex-basis: 76px;
+    padding-inline: var(--sv-space-2);
+    overflow: visible;
+  }
+
+  .sv-admin__sidebar .sv-navbar__brand span:not(.sv-navbar__mark),
+  .sv-admin__link > *:not(svg) { display: none; }
+
+  .sv-admin__link {
+    position: relative;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  /* Infobulle : le rail réduit ne doit pas devenir une devinette. */
+  .sv-admin__link::after {
+    content: attr(data-tip);
+    position: absolute;
+    inset-inline-start: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: var(--sv-radius-sm, 8px);
+    background: #0f172a;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--sv-duration) var(--sv-ease);
+    z-index: 10;
+  }
+
+  .sv-admin__link:hover::after,
+  .sv-admin__link:focus-visible::after { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .sv-admin__sidebar {
+    position: fixed;
+    z-index: var(--sv-z-modal);
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(84vw, 288px);
+    flex-basis: auto;
+    transform: translateX(-100%);
+    transition: transform var(--sv-duration) var(--sv-ease);
+    box-shadow: var(--sv-shadow-lg);
+    overflow-y: auto;
+  }
+
+  [dir='rtl'] .sv-admin__sidebar { transform: translateX(100%); }
+  .sv-admin__sidebar.is-open { transform: translateX(0); }
+
+  .sv-admin__scrim { display: block; pointer-events: none; }
+  .sv-admin__scrim.is-open { opacity: 1; pointer-events: auto; }
+
+  .sv-admin__burger { display: inline-flex !important; }
+  .sv-admin__content { padding: var(--sv-space-6) var(--sv-space-4) var(--sv-space-12); }
+  .sv-admin__topbar { padding-inline: var(--sv-space-4); gap: var(--sv-space-3); }
+  .sv-admin__header { margin-bottom: var(--sv-space-6); }
+  .sv-deflist { grid-template-columns: 1fr; gap: var(--sv-space-1) 0; }
+  .sv-deflist dt { margin-top: var(--sv-space-3); }
+}
+
+@media (max-width: 640px) {
+  .sv-admin__date { display: none; }
+  .sv-admin__identity-name { max-width: 40vw; }
+  .sv-admin__content { padding-inline: var(--sv-space-3); }
+  .sv-admin__toolbar { gap: var(--sv-space-2); }
+  .sv-admin__toolbar > * { flex: 1 1 100%; }
+  .sv-reference-grid { grid-template-columns: 1fr; }
+  .sv-empty { padding: var(--sv-space-10) var(--sv-space-4); }
+}
+
+/* Écrans larges : le contenu ne s'étire pas à l'infini */
+@media (min-width: 1600px) {
+  .sv-admin__content { max-width: 1560px; width: 100%; margin-inline: auto; }
+}

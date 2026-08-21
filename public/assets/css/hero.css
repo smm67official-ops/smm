@@ -1,0 +1,311 @@
+/* =========================================================
+   Bandeau d'accueil SMM67
+
+   Le visuel est un JPEG sur fond noir : il n'a pas de canal alpha.
+   Toute la scène est donc noire, et le raccord se fait par la couleur
+   plutôt que par un détourage — invisible, et sans coût de traitement
+   d'image.
+   ========================================================= */
+
+.s67-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding-block: clamp(48px, 4vw + 32px, 96px);
+  /*
+    Noir pur, et non un noir bleuté : les coins du JPEG sont exactement
+    #000. La moindre différence de teinte dessinait le rectangle de
+    l'image sur le fond.
+  */
+  background: #000;
+  color: #fff;
+}
+
+/* Halo doré : reprend la couleur de la marque, en haut à gauche. */
+.s67-hero__glow {
+  position: absolute;
+  z-index: -1;
+  top: -34%;
+  inset-inline-start: -18%;
+  width: min(920px, 105vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(242, 186, 89, 0.24) 0%,
+    rgba(242, 186, 89, 0.08) 42%,
+    transparent 66%
+  );
+  pointer-events: none;
+}
+
+/*
+  Voûte de points : une trame régulière, découpée en anneau par un
+  masque radial. `background-image` + `mask` coûtent un seul élément,
+  là où le motif d'origine demanderait une image bitmap.
+*/
+.s67-hero__dots {
+  position: absolute;
+  z-index: -1;
+  top: -58%;
+  inset-inline-start: -30%;
+  width: min(1180px, 135vw);
+  aspect-ratio: 1;
+  background-image: radial-gradient(rgba(242, 186, 89, 0.55) 1.1px, transparent 1.2px);
+  background-size: 17px 17px;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent 0 61%,
+    #000 63% 72%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent 0 61%,
+    #000 63% 72%,
+    transparent 74%
+  );
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------
+   Colonne de texte
+   --------------------------------------------------------- */
+.s67-hero__content { position: relative; max-width: 36rem; }
+
+/* Surtitre : la promesse de rang, avant le titre. */
+.s67-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 7px 15px 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 186, 89, 0.32);
+  background: rgba(242, 186, 89, 0.1);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f2ba59;
+}
+
+.s67-hero__eyebrow i { font-size: 13px; }
+
+.s67-hero__content h1 {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.9rem, 1.1rem + 3.2vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: #fff;
+  animation: s67-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.s67-hero__text {
+  margin: 18px 0 0;
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.08rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.72);
+  animation: s67-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
+}
+
+/* L'offre : bandeau discret, mais assez contrasté pour être lu. */
+.s67-hero__offer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(242, 186, 89, 0.42);
+  background: rgba(242, 186, 89, 0.08);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #f7d9a4;
+  animation: s67-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+.s67-hero__offer i { flex-shrink: 0; font-size: 18px; color: #f2ba59; }
+
+@keyframes s67-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.s67-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.s67-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 54px;
+  padding: 0 28px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 180ms ease;
+}
+
+.s67-btn--primary {
+  background: linear-gradient(135deg, #f2ba59, #e0a231);
+  color: #17130a;
+  box-shadow: 0 12px 30px rgba(242, 186, 89, 0.34);
+}
+
+.s67-btn--primary:hover { color: #17130a; box-shadow: 0 16px 38px rgba(242, 186, 89, 0.46); }
+
+.s67-btn--ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.s67-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(242, 186, 89, 0.6);
+  color: #fff;
+}
+
+/* ---------------------------------------------------------
+   Colonne visuelle
+   --------------------------------------------------------- */
+.s67-hero__visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 36px;
+}
+
+.s67-hero__photo {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  /* Le JPEG est noir sur les bords : on estompe le raccord vers le fond. */
+  -webkit-mask-image: radial-gradient(ellipse at 50% 48%, #000 70%, transparent 93%);
+  mask-image: radial-gradient(ellipse at 50% 48%, #000 70%, transparent 93%);
+}
+
+/* Pastille de marque, posée sur le bas du visuel comme sur la référence. */
+.s67-hero__badge {
+  /*
+    `mask-image` sur la photo en fait un contexte d'empilement, peint
+    après le contenu non positionné : sans z-index explicite, la photo
+    recouvrait la moitié haute de la pastille.
+  */
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -34px;
+  padding: 10px 22px 10px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f2ba59, #e0a231);
+  color: #17130a;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow: 0 14px 34px rgba(242, 186, 89, 0.34);
+}
+
+.s67-hero__badge i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(23, 19, 10, 0.16);
+  font-size: 16px;
+}
+
+/* Barre des plateformes */
+.s67-hero__platforms {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 16px);
+  margin: 16px 0 0;
+  padding: 12px clamp(12px, 2vw, 20px);
+  list-style: none;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.s67-hero__platforms li { display: flex; }
+
+.s67-hero__platforms img {
+  width: clamp(38px, 5vw, 52px);
+  height: auto;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .s67-hero__platforms img:hover { transform: translateY(-4px) scale(1.06); }
+}
+
+/* ---------------------------------------------------------
+   Grands écrans : le texte à gauche, la scène à droite
+   --------------------------------------------------------- */
+@media (min-width: 992px) {
+  .s67-hero { padding-block: clamp(64px, 5vw, 110px); }
+  .s67-hero__visual { margin-top: 0; }
+  .s67-hero__photo { max-width: 560px; }
+}
+
+/*
+  Sous 992px la scène passe sous le texte. Empilée, la composition
+  atteignait 980px de haut : le visuel tombait entièrement sous la ligne
+  de flottaison et l'écran d'accueil se résumait à du texte. On resserre
+  chaque intervalle pour que l'image entre dans le premier écran.
+*/
+@media (max-width: 991.98px) {
+  .s67-hero { padding-block: 34px 40px; }
+  .s67-hero__content { max-width: none; text-align: center; margin-inline: auto; }
+  .s67-hero__text { margin-top: 14px; }
+  .s67-hero__offer { margin-top: 18px; text-align: start; }
+  .s67-hero__actions { justify-content: center; margin-top: 22px; }
+  .s67-hero__visual { margin-top: 14px; }
+  .s67-hero__photo { max-width: 380px; }
+}
+
+@media (max-width: 575.98px) {
+  .s67-hero { padding-block: 26px 34px; }
+  .s67-btn { flex: 1 1 100%; }
+  .s67-hero__visual { margin-top: 8px; }
+  .s67-hero__photo { max-width: 322px; }
+  .s67-hero__badge { margin-top: -22px; padding: 9px 18px 9px 10px; }
+  .s67-hero__badge i { width: 26px; height: 26px; font-size: 14px; }
+  .s67-hero__platforms { gap: 8px; padding: 10px 12px; border-radius: 18px; margin-top: 12px; }
+  .s67-hero__platforms img { width: 40px; }
+  .s67-hero__dots { background-size: 14px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s67-hero__content h1,
+  .s67-hero__text,
+  .s67-hero__offer { animation: none; }
+  .s67-hero__platforms img:hover { transform: none; }
+}

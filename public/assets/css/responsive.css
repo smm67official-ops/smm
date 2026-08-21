@@ -1,0 +1,515 @@
+/* =========================================================
+   Socle responsive commun — site public, espace client, admin.
+   Chargé en dernier : corrige le thème Bootstrap d'origine, qui
+   suppose un écran large, et fixe les règles partagées
+   (typographie fluide, cibles tactiles, garde-fous de débordement).
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Garde-fous de débordement
+   Aucune page ne doit défiler horizontalement : sur mobile
+   c'est le symptôme n°1 d'une mise en page cassée.
+   --------------------------------------------------------- */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  min-width: 0; /* évite qu'un enfant flex/grid force son conteneur */
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Les longues chaînes sans espace (URL, e-mails) ne doivent pas
+   déborder — mais `anywhere` sur toute cellule couperait aussi les
+   identifiants courts et les nombres, d'où un ciblage précis. */
+.gp-table__muted,
+.sv-deflist dd,
+.cx-line__link,
+.cx-menu__head span {
+  overflow-wrap: anywhere;
+}
+
+.gp-table td { overflow-wrap: break-word; }
+
+/* Colonnes secondaires : masquées quand la place manque, jamais
+   sur mobile où le tableau est déjà devenu une pile de cartes. */
+@media (min-width: 768px) and (max-width: 1400px) {
+  .rs-col-optional { display: none; }
+}
+
+/* Le thème force des largeurs fixes sur plusieurs conteneurs. */
+.container,
+.container-fluid,
+.tm-container {
+  max-width: 100%;
+}
+
+/* ---------------------------------------------------------
+   2. Échelle typographique fluide
+   Les titres du thème sont figés en pixels : illisibles ou
+   tronqués sous 400px. clamp() les fait respirer.
+   --------------------------------------------------------- */
+:root {
+  --rs-h1: clamp(1.75rem, 1.15rem + 2.6vw, 3rem);
+  --rs-h2: clamp(1.45rem, 1.05rem + 1.8vw, 2.25rem);
+  --rs-h3: clamp(1.2rem, 0.98rem + 1vw, 1.65rem);
+  --rs-h4: clamp(1.05rem, 0.95rem + 0.5vw, 1.3rem);
+  --rs-body: clamp(0.9rem, 0.86rem + 0.18vw, 1rem);
+
+  --rs-gutter: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+  --rs-tap: 44px; /* cible tactile minimale confortable */
+}
+
+body { font-size: var(--rs-body); }
+
+h1, .tm-sectiontitle h2, .tm-breadcrumb-title { font-size: var(--rs-h1); line-height: 1.15; }
+h2 { font-size: var(--rs-h2); line-height: 1.2; }
+h3 { font-size: var(--rs-h3); line-height: 1.3; }
+h4 { font-size: var(--rs-h4); line-height: 1.35; }
+
+h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+
+/* ---------------------------------------------------------
+   3. Accessibilité — anneau de focus visible partout
+   --------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid #9a6b0f;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Le thème supprime l'outline par défaut sur plusieurs éléments. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #9a6b0f;
+  outline-offset: 2px;
+}
+
+/* Contraste : l'or de la marque (#f2ba59) avec du texte blanc plafonne
+   à 1.9:1. Le texte foncé monte à 10:1 et aligne le site sur l'espace
+   client (.cx-btn--primary) et l'administration (.gp-btn--primary). */
+a.tm-button:not(.tm-button-dark):not(.tm-button-white),
+button.tm-button:not(.tm-button-dark):not(.tm-button-white),
+.tm-button:not(.tm-button-dark):not(.tm-button-white),
+.tm-navbtn-primary,
+a.tm-navbtn-primary {
+  color: #1b1b2f;
+}
+
+/*
+  Au survol, le thème fait glisser un panneau NOIR (`::before`) sous le
+  libellé. Le texte foncé posé sur l'or devenait donc invisible sur ce
+  fond noir : la couleur doit s'inverser en même temps que le fond.
+*/
+a.tm-button:not(.tm-button-dark):not(.tm-button-white):hover,
+button.tm-button:not(.tm-button-dark):not(.tm-button-white):hover,
+.tm-button:not(.tm-button-dark):not(.tm-button-white):hover {
+  color: #ffffff;
+}
+
+/* Variante sombre : le panneau qui glisse est doré, pas noir. */
+.tm-button.tm-button-dark:hover,
+a.tm-button.tm-button-dark:hover,
+button.tm-button.tm-button-dark:hover,
+.tm-button.tm-button-white:hover,
+a.tm-button.tm-button-white:hover,
+button.tm-button.tm-button-white:hover {
+  color: #1b1b2f;
+}
+
+/* Le bouton d'inscription garde un fond doré au survol : texte foncé. */
+.tm-navbtn-primary:hover { color: #1b1b2f; }
+
+.rs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------
+   4. Cibles tactiles
+   Sous 1024px on ne survole pas : tout ce qui est cliquable
+   doit être atteignable au pouce.
+   --------------------------------------------------------- */
+@media (max-width: 1023.98px) {
+  .tm-header a,
+  .tm-button,
+  .gp-btn,
+  .sv-btn,
+  .cx-bottomnav__item {
+    min-height: var(--rs-tap);
+  }
+
+  .gp-btn--icon { width: var(--rs-tap); min-height: var(--rs-tap); }
+
+  .tm-header-logo { display: inline-flex; align-items: center; min-height: var(--rs-tap); }
+
+  /* `min-height` est sans effet sur un élément inline : les liens de
+     texte deviennent inline-flex pour obtenir une vraie zone de touche. */
+  .tm-footer a,
+  .tm-footer-contact a,
+  .tm-form a,
+  .cx-balance__foot a,
+  .cx-balance__link,
+  .cx-help a,
+  .rs-table td a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* Liens de retour en haut des écrans client et admin. */
+  .cx-order__cta { min-height: 40px; }
+
+  a.gp-hero__eyebrow,
+  .sv-deflist dd a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* « Lire la suite » du thème : 26px de haut d'origine. */
+  .tm-readmore {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* Icônes favoris / panier de l'en-tête : 20px de large d'origine. */
+  .tm-header-icons > li > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--rs-tap);
+    min-height: var(--rs-tap);
+  }
+
+  /* Fil d'Ariane et coordonnées de contact. */
+  .tm-breadcrumb ul a,
+  .tm-contact-block a,
+  .tm-contact-info a,
+  .widget-info a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* Puces des carrousels : 3px de haut d'origine, impossibles à viser.
+     Le bouton devient une vraie cible de 44px, la barre visible est
+     dessinée par ::before pour ne rien changer au design. */
+  .tm-testimonial-dots button,
+  .tm-slider-dots button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: var(--rs-tap);
+    background: transparent !important;
+  }
+
+  .tm-testimonial-dots button::before,
+  .tm-slider-dots button::before {
+    content: '';
+    width: 24px;
+    height: 3px;
+    background: var(--tm-border);
+  }
+
+  .tm-testimonial-dots button.is-active::before,
+  .tm-slider-dots button.is-active::before { background: var(--tm-theme); }
+
+  .tm-testimonial-dots { gap: 0; }
+
+  .swiper-pagination-bullet { position: relative; }
+  .swiper-pagination-bullet::after {
+    content: '';
+    position: absolute;
+    inset: -20px -6px;
+  }
+
+  /* Filtres par statut du tableau de bord admin. */
+  .gp-pill { min-height: 38px; padding-inline: 14px; }
+  .gp-chips { gap: 10px; }
+}
+
+@media (max-width: 767.98px) {
+
+  /* Empêche le zoom automatique iOS à la mise au point. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* La navigation basse recouvrirait la fin des pages publiques. */
+@media (max-width: 767.98px) {
+  body:not(.cx-app) #wrapper { padding-bottom: 66px; }
+}
+
+/* Aucun effet coûteux inutile sur mobile. */
+@media (max-width: 767.98px) {
+  .tm-header,
+  .cx-appbar,
+  .cx-sticky,
+  .sv-admin__topbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .cx-appbar,
+  .cx-sticky { background: #fff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   5. En-tête public sur mobile
+   Le bouton hamburger est désormais le dernier élément de
+   `.tm-navactions` (voir Header.tsx) : plus de superposition
+   avec les boutons de compte.
+   --------------------------------------------------------- */
+.tm-mobilenav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--rs-tap);
+  height: var(--rs-tap);
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  font-size: 25px;
+  line-height: 1;
+  color: #3c424f;
+}
+
+@media only screen and (max-width: 991px) {
+  .tm-mobilenav-toggle { display: inline-flex; }
+  .tm-navactions { gap: 4px; }
+  .tm-navactions .tm-navbtn { padding: 0 11px; }
+  .tm-header-logo img { max-height: 52px; }
+}
+
+@media only screen and (max-width: 575px) {
+  .tm-header-middlearea { padding: 12px 0; }
+  .tm-header-search { margin-top: 12px; }
+  .tm-header-logo img { max-height: 46px; }
+  .tm-navactions { gap: 6px; }
+
+  /*
+    Quatre contrôles ne tiennent pas sur 360px : le libellé des boutons
+    se retrouvait rogné à mi-mot. L'inscription figure déjà dans le menu
+    déroulant — on ne garde sur la barre que l'action la plus courante,
+    la connexion, et on lui donne la couleur principale puisqu'elle est
+    désormais seule.
+  */
+  .tm-navbtn-register { display: none; }
+
+  .tm-navbtn-login {
+    background: var(--tm-theme);
+    border-color: var(--tm-theme);
+    color: #1b1b2f;
+    padding: 0 16px;
+  }
+
+  .tm-navbtn-login:hover {
+    background: #e5a93f;
+    border-color: #e5a93f;
+    color: #1b1b2f;
+  }
+
+  /* Le sélecteur de langue était écrasé à 10px : c'est le conteneur qui
+     se laissait comprimer par le flex, pas le bouton. */
+  .tm-navactions-lang,
+  .tm-navactions-account { flex-shrink: 0; }
+
+  .tm-navlang-toggle {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tm-navlang-toggle .ion-chevron-down { display: none; }
+  .tm-navlang-toggle .ion-earth { font-size: 19px; }
+
+  .tm-navbtn { height: 40px; padding: 0 12px; flex-shrink: 0; }
+  .tm-navbtn-admin { padding: 0 11px; }
+
+  /*
+    Les colonnes Bootstrap figent logo et actions à 50% chacune. Les
+    actions, plus larges que leur moitié, débordaient par la gauche et
+    passaient par-dessus le logo. On laisse le logo prendre sa taille et
+    les actions occuper le reste ; la recherche, en col-12, passe seule
+    à la ligne suivante.
+  */
+  .tm-header-middlearea .row > .order-1,
+  .tm-header-middlearea .row > .order-2 {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .tm-header-middlearea .row > .order-2 { flex: 1 1 auto; }
+}
+
+/* Très petits écrans : chaque contrôle rend quelques pixels. */
+@media only screen and (max-width: 359px) {
+  .tm-header-logo img { max-height: 38px; }
+  .tm-navactions { gap: 4px; }
+  .tm-navlang-toggle { width: 36px; }
+  .tm-navbtn-login { padding: 0 12px; font-size: 13px; }
+  .tm-mobilenav-toggle { width: 40px; font-size: 23px; }
+}
+
+/* ---------------------------------------------------------
+   6. Site public — bandeaux et sections
+   --------------------------------------------------------- */
+.tm-breadcrumb,
+.tm-slider,
+.tm-hero {
+  padding-inline: var(--rs-gutter);
+}
+
+@media (max-width: 767.98px) {
+  .tm-breadcrumb { padding-block: 42px; }
+  .tm-slider-content h1 { font-size: var(--rs-h1); }
+
+  /* Le thème place les sections avec de grandes marges verticales. */
+  .tm-section,
+  .tm-padding-section { padding-block: 46px; }
+}
+
+/* Le tableau des services du thème : carte sur mobile. */
+@media (max-width: 767.98px) {
+  .tm-table-responsive { -webkit-overflow-scrolling: touch; }
+}
+
+/* ---------------------------------------------------------
+   7. Tableau responsive générique
+   `.rs-table` + `data-label` sur chaque cellule : le tableau
+   devient une pile de cartes sous 768px, sans duplication du
+   balisage ni défilement horizontal.
+   --------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  .rs-table,
+  .rs-table thead,
+  .rs-table tbody,
+  .rs-table tr,
+  .rs-table th,
+  .rs-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .rs-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .rs-table tbody tr {
+    /* Colonne flex : la cellule d'identité peut remonter en tête. */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--gp-border, #e8edf3);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .rs-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    text-align: start !important;
+    font-size: 13px;
+  }
+
+  .rs-table tbody td:last-child { border-bottom: none !important; }
+
+  .rs-table tbody td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  /* Une cellule sans libellé (actions) occupe toute la largeur. */
+  .rs-table tbody td[data-label='']::before { content: none; }
+  .rs-table tbody td[data-label=''] { justify-content: flex-end; }
+
+  /* Cellule d'identité : titre de la carte, toujours en premier. */
+  .rs-table tbody td.rs-cell--head {
+    display: block;
+    order: -1;
+    padding-top: 12px !important;
+    font-size: 14px;
+  }
+
+  .rs-table tbody td.rs-cell--head::before { content: none; }
+
+  .rs-table .gp-table__actions { justify-content: flex-end; }
+  .rs-table .gp-table__num { justify-content: space-between; }
+
+  /* Le conteneur ne défile plus : il n'y a plus rien à faire défiler. */
+  .gp-table-wrap:has(.rs-table) { overflow-x: visible; }
+}
+
+/* ---------------------------------------------------------
+   8. Impression : ni navigation ni barres collantes
+   --------------------------------------------------------- */
+@media print {
+  .cx-bottomnav,
+  .cx-appbar,
+  .cx-rail,
+  .cx-sticky,
+  .sv-admin__sidebar,
+  .sv-admin__topbar,
+  .tm-header,
+  .tm-footer {
+    display: none !important;
+  }
+}

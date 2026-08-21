@@ -1,0 +1,31 @@
+{
+  "name": "surose-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "audit:responsive": "node scripts/responsive-audit.mjs",
+    "audit:shots": "node scripts/responsive-shots.mjs",
+    "audit:motion": "node scripts/motion-check.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
+    "gsap": "^3.13.0",
+    "next": "15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "playwright": "^1.62.1",
+    "typescript": "^5.7.3"
+  }
+}

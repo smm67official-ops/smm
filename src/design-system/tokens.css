@@ -1,0 +1,133 @@
+/* =========================================================
+   SocialVault — Design tokens
+   Source unique de vérité : couleurs, typographie, espacements,
+   rayons, ombres, transitions. Aucun composant ne code une
+   valeur en dur, tout passe par ces variables.
+   ========================================================= */
+
+:root {
+  /* ---------- Couleurs de marque ---------- */
+  --sv-primary: #5b6ef5;
+  --sv-primary-hover: #4a5be7;
+  --sv-gradient-start: #6366f1;
+  --sv-gradient-end: #a855f7;
+  --sv-secondary-lavender: #c4c4f5;
+  --sv-accent-purple: #8b5cf6;
+  --sv-accent-light: #d8d4ff;
+
+  /* ---------- Surfaces ---------- */
+  --sv-bg: #f8f8fc;
+  --sv-bg-secondary: #eeeefa;
+  --sv-surface: #ffffff;
+  --sv-surface-hover: #fafaff;
+
+  /* ---------- Texte ---------- */
+  --sv-text: #101830;
+  --sv-text-secondary: #526080;
+  --sv-text-muted: #8b95ad;
+  --sv-text-inverse: #ffffff;
+
+  /* ---------- Bordures ---------- */
+  --sv-border: #e2e3f2;
+  --sv-border-strong: #d2d4ec;
+  --sv-border-focus: var(--sv-primary);
+
+  /* ---------- États ---------- */
+  --sv-success: #22c55e;
+  --sv-success-soft: #eafaf0;
+  --sv-error: #ef4444;
+  --sv-error-soft: #fdecec;
+  --sv-warning: #f59e0b;
+  --sv-warning-soft: #fef6e7;
+  --sv-info: var(--sv-primary);
+  --sv-info-soft: #eef0fe;
+
+  /* ---------- Dégradés ---------- */
+  --sv-gradient: linear-gradient(135deg, var(--sv-gradient-start) 0%, var(--sv-gradient-end) 100%);
+  --sv-gradient-soft: linear-gradient(135deg, #eef0fe 0%, #f5eefe 100%);
+  --sv-gradient-surface: linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+  --sv-glow: radial-gradient(circle at center, rgba(139, 92, 246, 0.22) 0%, rgba(99, 102, 241, 0) 70%);
+
+  /* ---------- Accents plateformes (usage parcimonieux) ---------- */
+  --sv-instagram: #e1306c;
+  --sv-tiktok: #111111;
+  --sv-youtube: #ff0000;
+  --sv-x: #000000;
+  --sv-telegram: #229ed9;
+  --sv-facebook: #1877f2;
+
+  /* ---------- Typographie ---------- */
+  --sv-font: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sv-font-mono: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+
+  --sv-text-h1: 3.25rem;   /* 52px */
+  --sv-text-h2: 2.25rem;   /* 36px */
+  --sv-text-h3: 1.5rem;    /* 24px */
+  --sv-text-h4: 1.25rem;   /* 20px */
+  --sv-text-lg: 1.0625rem; /* 17px */
+  --sv-text-base: 0.9375rem;
+  --sv-text-sm: 0.875rem;
+  --sv-text-xs: 0.75rem;
+
+  --sv-leading-tight: 1.15;
+  --sv-leading-snug: 1.35;
+  --sv-leading-normal: 1.65;
+
+  --sv-weight-regular: 400;
+  --sv-weight-medium: 500;
+  --sv-weight-semibold: 600;
+  --sv-weight-bold: 700;
+
+  --sv-tracking-tight: -0.02em;
+  --sv-tracking-wide: 0.08em;
+
+  /* ---------- Espacements (base 4px) ---------- */
+  --sv-space-1: 0.25rem;
+  --sv-space-2: 0.5rem;
+  --sv-space-3: 0.75rem;
+  --sv-space-4: 1rem;
+  --sv-space-5: 1.25rem;
+  --sv-space-6: 1.5rem;
+  --sv-space-8: 2rem;
+  --sv-space-10: 2.5rem;
+  --sv-space-12: 3rem;
+  --sv-space-16: 4rem;
+  --sv-space-20: 5rem;
+  --sv-space-24: 6rem;
+
+  /* ---------- Rayons ---------- */
+  --sv-radius-xs: 6px;
+  --sv-radius-sm: 8px;
+  --sv-radius-md: 12px;
+  --sv-radius-lg: 16px;
+  --sv-radius-xl: 24px;
+  --sv-radius-2xl: 32px;
+  --sv-radius-full: 999px;
+
+  /* ---------- Ombres (douces, jamais lourdes) ---------- */
+  --sv-shadow-xs: 0 1px 2px rgba(16, 24, 48, 0.04);
+  --sv-shadow-sm: 0 2px 8px rgba(16, 24, 48, 0.05);
+  --sv-shadow-md: 0 8px 24px rgba(16, 24, 48, 0.06);
+  --sv-shadow-lg: 0 16px 48px rgba(16, 24, 48, 0.08);
+  --sv-shadow-primary: 0 8px 20px rgba(99, 102, 241, 0.28);
+  --sv-shadow-primary-hover: 0 12px 28px rgba(99, 102, 241, 0.34);
+  --sv-ring: 0 0 0 4px rgba(91, 110, 245, 0.16);
+
+  /* ---------- Transitions ---------- */
+  --sv-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sv-duration-fast: 120ms;
+  --sv-duration: 200ms;
+  --sv-duration-slow: 400ms;
+  --sv-transition: all var(--sv-duration) var(--sv-ease);
+
+  /* ---------- Élévations ---------- */
+  --sv-z-dropdown: 100;
+  --sv-z-sticky: 200;
+  --sv-z-modal: 400;
+  --sv-z-toast: 500;
+
+  /* ---------- Layout ---------- */
+  --sv-container: 1200px;
+  --sv-container-narrow: 880px;
+  --sv-navbar-height: 72px;
+}

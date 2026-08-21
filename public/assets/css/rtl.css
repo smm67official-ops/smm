@@ -1,0 +1,131 @@
+/* =========================================================
+   Couche RTL — chargée uniquement quand dir="rtl" (arabe).
+   Le thème d'origine est LTR : on inverse ici les alignements,
+   flottants, marges et paddings directionnels.
+   ========================================================= */
+
+[dir='rtl'] body {
+  text-align: right;
+  font-family: 'Open Sans', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* --- Grille Bootstrap 4 (pas de version RTL) --- */
+[dir='rtl'] .row { flex-direction: row-reverse; }
+[dir='rtl'] .row.no-reverse { flex-direction: row; }
+
+/* Les colonnes gardent leur ordre naturel dans les listes de cartes. */
+[dir='rtl'] .mt-30-reverse { flex-direction: row-reverse; }
+
+[dir='rtl'] .text-left { text-align: right !important; }
+[dir='rtl'] .text-right { text-align: left !important; }
+
+/* --- En-tête --- */
+[dir='rtl'] .tm-header-info { padding-right: 0; }
+[dir='rtl'] .tm-header-info li:not(:last-child) { margin-right: 0; margin-left: 25px; }
+[dir='rtl'] .tm-header-info i { margin-right: 0; margin-left: 8px; }
+
+[dir='rtl'] .tm-header-options { text-align: left; }
+[dir='rtl'] .tm-dropdown ul { right: auto; left: 0; text-align: right; }
+[dir='rtl'] .tm-dropdown > button { padding-right: 0; padding-left: 15px; }
+
+[dir='rtl'] .tm-header-search input { padding: 0 20px 0 60px; text-align: right; }
+[dir='rtl'] .tm-header-search button { right: auto; left: 0; }
+
+[dir='rtl'] .tm-header-icons { text-align: left; padding-right: 0; }
+[dir='rtl'] .tm-header-icons li:not(:last-child) { margin-right: 0; margin-left: 25px; }
+[dir='rtl'] .tm-header-icons li a span { right: auto; left: -10px; }
+
+[dir='rtl'] .tm-header-nav ul li { margin: 0 18px; }
+[dir='rtl'] .tm-header-nav-dropdown ul { text-align: right; left: auto; right: 100%; }
+[dir='rtl'] .tm-header-nav-dropdown > a::after { padding-left: 0; padding-right: 3px; }
+
+[dir='rtl'] .tm-mobilenav-toggle { right: auto; left: 15px; }
+[dir='rtl'] .tm-mobilemenu > ul > li > a,
+[dir='rtl'] .tm-mobilemenu ul ul li a { text-align: right; }
+[dir='rtl'] .tm-mobilemenu ul ul li a { padding: 10px 40px 10px 20px; }
+[dir='rtl'] .tm-mobilemenu-expand { right: auto; left: 0; }
+
+/* --- Hero --- */
+[dir='rtl'] .tm-heroslider { background-position: left center; }
+[dir='rtl'] .tm-heroslider-slider .tm-heroslider .tm-heroslider-content { transform: translateX(100%); }
+[dir='rtl'] .tm-heroslider-slider .tm-heroslider.is-current .tm-heroslider-content { transform: translateX(0); }
+[dir='rtl'] .tm-heroslider-nav.is-prev { left: auto; right: 50px; }
+[dir='rtl'] .tm-heroslider-nav.is-next { right: auto; left: 50px; }
+[dir='rtl'] .tm-heroslider-nav i { transform: scaleX(-1); }
+
+@media only screen and (max-width: 1600px) {
+  [dir='rtl'] .tm-heroslider-nav.is-prev { left: auto; right: 10px; }
+  [dir='rtl'] .tm-heroslider-nav.is-next { right: auto; left: 10px; }
+}
+
+@media only screen and (max-width: 1300px) {
+  [dir='rtl'] .tm-heroslider-nav.is-prev { right: auto; left: calc(50% + 10px); }
+  [dir='rtl'] .tm-heroslider-nav.is-next { left: auto; right: calc(50% + 10px); }
+}
+
+[dir='rtl'] .tm-hero-secondary { margin-left: 0; margin-right: 12px; }
+
+/* --- Sections et cartes --- */
+[dir='rtl'] .tm-feature { text-align: right; }
+[dir='rtl'] .tm-feature-icon { margin-right: 0; margin-left: 20px; }
+
+[dir='rtl'] .tm-checklist li,
+[dir='rtl'] .tm-comparison li { flex-direction: row; }
+
+[dir='rtl'] .tm-ordercharge {
+  border-left: none;
+  border-right: 3px solid var(--tm-theme);
+}
+
+[dir='rtl'] .tm-sectiontitle { text-align: center; }
+
+/* --- Tableaux --- */
+[dir='rtl'] .table th,
+[dir='rtl'] .table td { text-align: right; }
+
+[dir='rtl'] .tm-cart-pricebox table td:last-child,
+[dir='rtl'] .tm-checkout-ordertable td:last-child,
+[dir='rtl'] .tm-checkout-ordertable th:last-child { text-align: left; }
+
+/* --- Formulaires --- */
+[dir='rtl'] .tm-form-field label { text-align: right; display: block; }
+[dir='rtl'] .tm-form-field input[type='checkbox'] + label,
+[dir='rtl'] .tm-form-field input[type='radio'] + label { display: inline-block; }
+[dir='rtl'] .tm-form input,
+[dir='rtl'] .tm-form textarea,
+[dir='rtl'] .tm-form select,
+[dir='rtl'] .tm-select { text-align: right; direction: rtl; }
+
+/* Les champs qui contiennent une URL restent en LTR. */
+[dir='rtl'] input[type='url'],
+[dir='rtl'] input[type='email'],
+[dir='rtl'] input[type='tel'] { direction: ltr; text-align: left; }
+
+[dir='rtl'] .tm-form-fieldhalf { float: right; }
+
+/* --- Pied de page --- */
+[dir='rtl'] .widgets-footer .single-widget { text-align: right; }
+[dir='rtl'] .widget-newsletter-form input { padding: 0 20px 0 150px; }
+[dir='rtl'] .widget-newsletter-form button { right: auto; left: 0; }
+/* L'écart libellé/valeur est désormais porté par le `gap` de la ligne. */
+
+/* --- Fil d'Ariane et pagination --- */
+[dir='rtl'] .tm-breadcrumb ul li:not(:last-child)::after { content: '/'; padding: 0 8px; }
+[dir='rtl'] .tm-pagination ul { padding-right: 0; }
+[dir='rtl'] .tm-pagination i { transform: scaleX(-1); }
+
+/* --- Bandeaux défilants : le sens visuel reste identique --- */
+[dir='rtl'] .tm-marquee-track { direction: ltr; }
+[dir='rtl'] .tm-marquee-group { direction: rtl; }
+
+/* --- Alertes --- */
+[dir='rtl'] .tm-alert {
+  border-left: none;
+  border-right: 3px solid var(--tm-theme);
+}
+
+[dir='rtl'] .tm-alert-error { border-right-color: #dd4b39; }
+[dir='rtl'] .tm-alert-success { border-right-color: #2e9e5b; }
+
+/* --- Bouton retour en haut --- */
+[dir='rtl'] #back-top-top { right: auto !important; left: 25px !important; }

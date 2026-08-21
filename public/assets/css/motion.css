@@ -1,0 +1,155 @@
+/* =========================================================
+   Langage de mouvement — couche CSS.
+
+   GSAP pilote les séquences ; le CSS gère ici deux choses qu'il fait
+   mieux : l'état initial avant hydratation, et le survol (aucun
+   JavaScript n'a à s'exécuter sur un déplacement de souris).
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. État initial
+   `has-motion` est posée par un script en ligne puis retirée dès que
+   GSAP a placé ses styles. Sans JavaScript, la classe n'apparaît
+   jamais et le contenu reste visible.
+   --------------------------------------------------------- */
+html.has-motion [data-motion],
+html.has-motion [data-reveal],
+html.has-motion [data-reveal-item],
+html.has-motion .tm-scrollanim {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Le thème masque `.tm-scrollanim` en dur et comptait sur une classe
+   ajoutée en JavaScript pour le révéler : sans script, ces blocs
+   restaient invisibles. On rend la visibilité conditionnelle au même
+   marqueur que le reste du système. */
+.tm-scrollanim { opacity: 1; }
+
+/* ---------------------------------------------------------
+   2. Survol — cartes et éléments cliquables
+   translateY court + ombre : « ceci répond au clic ».
+   --------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  [data-hover='lift'] {
+    transition:
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 200ms ease;
+    will-change: transform;
+  }
+
+  [data-hover='lift']:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(16, 24, 48, 0.1);
+  }
+
+  /* Bouton : élévation, pas de saut. */
+  [data-hover='raise'] {
+    transition:
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-hover='raise']:hover { transform: translateY(-1px) scale(1.015); }
+
+  /* L'icône avance dans le sens de l'action. */
+  [data-hover='raise'] i,
+  [data-hover='raise'] svg {
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-hover='raise']:hover i,
+  [data-hover='raise']:hover svg { transform: translateX(2px); }
+
+  /* Sens de lecture inversé : l'icône doit avancer vers la gauche. */
+  [dir='rtl'] [data-hover='raise']:hover i,
+  [dir='rtl'] [data-hover='raise']:hover svg { transform: translateX(-2px); }
+}
+
+/* Le retour de pression est assuré par GSAP (`data-press`) ; on neutralise
+   simplement la sélection de texte qui parasite un appui long. */
+[data-press] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ---------------------------------------------------------
+   3. Chargement — indicateur circulaire discret
+   --------------------------------------------------------- */
+/*
+  Le bouton du thème est un `inline-block` avec `line-height: 50px` : un
+  indicateur glissé à l'intérieur se posait sur la ligne de base au lieu
+  d'être centré. On ne bascule en flex que si un indicateur est présent,
+  pour ne rien changer aux boutons au repos.
+*/
+.tm-button:has(.mx-spinner) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  line-height: 1;
+}
+
+.mx-spinner {
+  display: inline-block;
+  vertical-align: middle; /* repli si :has() n'est pas pris en charge */
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: mx-spin 620ms linear infinite;
+}
+
+@keyframes mx-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Barre de progression indéterminée, en tête de page. */
+.mx-progress {
+  position: fixed;
+  z-index: 200;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.mx-progress::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, #f2ba59, transparent);
+  animation: mx-slide 900ms ease-in-out infinite;
+}
+
+@keyframes mx-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
+/* ---------------------------------------------------------
+   4. Mouvement réduit
+   L'information reste — seul le déplacement disparaît.
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html.has-motion [data-motion],
+  html.has-motion [data-reveal],
+  html.has-motion [data-reveal-item],
+  html.has-motion .tm-scrollanim {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [data-hover='lift']:hover,
+  [data-hover='raise']:hover { transform: none; }
+
+  .mx-spinner { animation-duration: 1.6s; }
+  .mx-progress::after { animation: none; width: 100%; opacity: 0.5; }
+}
