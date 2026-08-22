@@ -212,6 +212,8 @@ const fr: Dictionary = {
   },
 
   service: {
+    addedToBasket: 'Ajouté au panier',
+    alreadyInBasket: 'Ce service est déjà dans votre panier avec le même lien.',
     rate: 'Prix / 1000',
     min: 'Minimum',
     max: 'Maximum',
@@ -245,6 +247,8 @@ const fr: Dictionary = {
   },
 
   cart: {
+    removed: 'Retiré du panier',
+    cleared: 'Panier vidé',
     subtitle: 'Vérifiez votre commande avant de payer.',
     itemMany: 'articles',
     itemOne: 'article',
@@ -265,6 +269,10 @@ const fr: Dictionary = {
   },
 
   favorites: {
+    added: 'Ajouté aux favoris',
+    removed: 'Retiré des favoris',
+    error: 'Impossible de mettre à jour vos favoris. Veuillez réessayer.',
+    addToBasketHint: 'Ouvrez le service pour choisir votre lien et la quantité.',
     title: 'Services favoris',
     empty: 'Vous n’avez pas encore de service favori.',
     colService: 'Service',

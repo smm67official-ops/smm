@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useBasket } from '@/components/providers/BasketProvider';
+import WishlistButton from '@/components/shop/WishlistButton';
 import { platformOf } from '@/lib/platforms';
 import { rate as fmtRate } from '@/lib/format';
 import type { Locale } from '@/i18n/config';
@@ -17,8 +17,6 @@ export default function ServiceTable({
   t: Dictionary;
   services: Service[];
 }) {
-  const { toggleFavorite, isFavorite } = useBasket();
-
   return (
     <div className="tm-cart-table tm-servicetable table-responsive">
       <table className="table table-bordered mb-0 rs-table">
@@ -35,7 +33,6 @@ export default function ServiceTable({
         <tbody>
           {services.map((service) => {
             const platform = platformOf(service.platform);
-            const favorite = isFavorite(service.id);
 
             return (
               <tr key={service.id}>
@@ -58,26 +55,7 @@ export default function ServiceTable({
                   <Link href={`/${locale}/services/${service.id}`} className="tm-button tm-button-small">
                     {t.services.order}
                   </Link>
-                  <button
-                    type="button"
-                    className="tm-favorite-toggle"
-                    aria-pressed={favorite}
-                    aria-label={t.nav.favorites}
-                    title={t.nav.favorites}
-                    onClick={() =>
-                      toggleFavorite({
-                        serviceId: service.id,
-                        name: service.name,
-                        rate: service.rate,
-                        platform: service.platform,
-                      })
-                    }
-                  >
-                    <i
-                      className={favorite ? 'ion-heart' : 'ion-ios-heart-outline'}
-                      style={favorite ? { color: '#f2ba59' } : undefined}
-                    />
-                  </button>
+                  <WishlistButton service={service} t={t} variant="icon" />
                 </td>
               </tr>
             );

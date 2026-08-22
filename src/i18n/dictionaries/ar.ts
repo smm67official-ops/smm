@@ -212,6 +212,8 @@ const ar: Dictionary = {
   },
 
   service: {
+    addedToBasket: 'تمت الإضافة إلى السلة',
+    alreadyInBasket: 'هذه الخدمة موجودة في سلتك بنفس الرابط.',
     rate: 'السعر لكل 1000',
     min: 'الحد الأدنى',
     max: 'الحد الأقصى',
@@ -245,6 +247,8 @@ const ar: Dictionary = {
   },
 
   cart: {
+    removed: 'أُزيل من السلة',
+    cleared: 'تم إفراغ السلة',
     subtitle: 'راجع طلبك قبل الدفع.',
     itemMany: 'عناصر',
     itemOne: 'عنصر',
@@ -265,6 +269,10 @@ const ar: Dictionary = {
   },
 
   favorites: {
+    added: 'أضيف إلى المفضلة',
+    removed: 'أُزيل من المفضلة',
+    error: 'تعذر تحديث المفضلة. حاول مجددًا.',
+    addToBasketHint: 'افتح الخدمة لاختيار الرابط والكمية.',
     title: 'الخدمات المفضلة',
     empty: 'لا توجد خدمة مفضلة بعد.',
     colService: 'الخدمة',

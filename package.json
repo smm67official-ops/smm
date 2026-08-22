@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "audit:responsive": "node scripts/responsive-audit.mjs",
     "audit:shots": "node scripts/responsive-shots.mjs",
-    "audit:motion": "node scripts/motion-check.mjs"
+    "audit:motion": "node scripts/motion-check.mjs",
+    "qa:shop": "node scripts/qa-shop.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

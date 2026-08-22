@@ -53,7 +53,7 @@ export default function BasketTable({ locale, t }: { locale: Locale; t: Dictiona
             line.type !== 'Package' && (line.quantity < line.min || line.quantity > line.max);
 
           return (
-            <article className="cx-line" key={line.serviceId + line.link} data-motion="item">
+            <article className="cx-line" key={line.id} data-motion="item">
               <span className="cx-order__icon">
                 <i className={platform?.icon ?? 'ion-bag'} />
               </span>
@@ -68,7 +68,7 @@ export default function BasketTable({ locale, t }: { locale: Locale; t: Dictiona
                       type="button"
                       aria-label="-"
                       onClick={() =>
-                        update(line.serviceId, {
+                        update(line.id, {
                           quantity: Math.max(line.min, line.quantity - line.min),
                         })
                       }
@@ -83,14 +83,14 @@ export default function BasketTable({ locale, t }: { locale: Locale; t: Dictiona
                       value={line.quantity}
                       aria-label={t.cart.colQuantity}
                       onChange={(e) =>
-                        update(line.serviceId, { quantity: Number(e.target.value) || line.min })
+                        update(line.id, { quantity: Number(e.target.value) || line.min })
                       }
                     />
                     <button
                       type="button"
                       aria-label="+"
                       onClick={() =>
-                        update(line.serviceId, {
+                        update(line.id, {
                           quantity: Math.min(line.max, line.quantity + line.min),
                         })
                       }
@@ -105,7 +105,7 @@ export default function BasketTable({ locale, t }: { locale: Locale; t: Dictiona
                       type="button"
                       className="cx-remove"
                       aria-label={t.cart.colRemove}
-                      onClick={() => remove(line.serviceId)}
+                      onClick={() => remove(line.id)}
                     >
                       <i className="ion-trash-b" />
                     </button>

@@ -153,3 +153,46 @@ html.has-motion .tm-scrollanim {
   .mx-spinner { animation-duration: 1.6s; }
   .mx-progress::after { animation: none; width: 100%; opacity: 0.5; }
 }
+
+/* ---------------------------------------------------------
+   5. Boutique — états de retour
+   --------------------------------------------------------- */
+
+/* Bouton « ajouté au panier » : vert le temps de la confirmation. */
+.tm-button.is-done,
+.tm-button.is-done:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  color: #fff !important;
+}
+
+.tm-button.is-done::before { display: none; }
+
+.tm-button .mx-spinner,
+.tm-button i {
+  vertical-align: middle;
+  margin-inline-end: 8px;
+}
+
+/* Un bouton occupé ne doit pas paraître cliquable. */
+.tm-button:disabled,
+.tm-favorite-toggle:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* Le cœur est animé par GSAP : on lui donne son propre plan de
+   transformation pour que le survol du bouton ne le contrarie pas. */
+.tm-favorite-toggle i {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Indication sous le bouton « commander » de la page favoris. */
+.tm-wishlist-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #9ca3af;
+}

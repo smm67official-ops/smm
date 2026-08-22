@@ -7,6 +7,7 @@ import { useBasket } from '@/components/providers/BasketProvider';
 import { createClient } from '@/lib/supabase/client';
 import { LOCALES, LOCALE_META, type Locale } from '@/i18n/config';
 import { API_DOCS_ENABLED, BRAND } from '@/lib/brand';
+import CartBadge from '@/components/motion/CartBadge';
 import type { Dictionary } from '@/i18n';
 
 export default function Header({
@@ -156,13 +157,15 @@ export default function Header({
                   <li>
                     <Link href={href('/wishlist')} aria-label={t.nav.favorites}>
                       <i className="ion-android-favorite-outline" />
-                      <span>{favorites.length}</span>
+                      <CartBadge count={favorites.length} className="tm-header-count" fallback />
                     </Link>
                   </li>
                   <li>
                     <Link href={href('/cart')} aria-label={t.nav.cart}>
                       <i className="ion-bag" />
-                      <span>{count}</span>
+                      {/* La pastille réagit à l'ajout ; à zéro elle reste
+                          affichée pour ne pas faire sauter la mise en page. */}
+                      <CartBadge count={count} className="tm-header-count" fallback />
                     </Link>
                   </li>
                 </ul>

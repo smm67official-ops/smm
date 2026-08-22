@@ -189,7 +189,7 @@ export default function CheckoutForm({
           {t.checkout.summary}
         </h2>
         {basket.map((line) => (
-          <div className="cx-kv" key={line.serviceId + line.link}>
+          <div className="cx-kv" key={line.id}>
             <span style={{ maxWidth: '62%' }}>
               {line.name}
               <br />

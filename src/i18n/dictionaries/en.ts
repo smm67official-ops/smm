@@ -210,6 +210,8 @@ const en = {
   },
 
   service: {
+    addedToBasket: 'Added to basket',
+    alreadyInBasket: 'This service is already in your basket with the same link.',
     rate: 'Rate per 1000',
     min: 'Minimum',
     max: 'Maximum',
@@ -243,6 +245,8 @@ const en = {
   },
 
   cart: {
+    removed: 'Removed from basket',
+    cleared: 'Basket cleared',
     subtitle: 'Review your order before paying.',
     itemMany: 'items',
     itemOne: 'item',
@@ -263,6 +267,10 @@ const en = {
   },
 
   favorites: {
+    added: 'Added to favourites',
+    removed: 'Removed from favourites',
+    error: 'Could not update your favourites. Please try again.',
+    addToBasketHint: 'Open the service to choose your link and quantity.',
     title: 'Favorite services',
     empty: 'You have no favorite service yet.',
     colService: 'Service',

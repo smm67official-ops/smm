@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useBasket } from '@/components/providers/BasketProvider';
 import { createClient } from '@/lib/supabase/client';
 import { BRAND } from '@/lib/brand';
+import CartBadge from '@/components/motion/CartBadge';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -99,7 +100,7 @@ export default function ClientChrome({
 
         <Link href={`/${locale}/cart`} className="cx-iconbtn" aria-label={t.nav.cart}>
           <i className="ion-bag" />
-          {count > 0 && <span className="cx-iconbtn__dot">{count}</span>}
+          <CartBadge count={count} />
         </Link>
 
         {signedIn ? (

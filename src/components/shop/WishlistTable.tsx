@@ -2,13 +2,31 @@
 
 import Link from 'next/link';
 import { useBasket } from '@/components/providers/BasketProvider';
+import { useCxToast } from '@/components/motion/ToastProvider';
 import { rate as fmtRate } from '@/lib/format';
 import { platformOf } from '@/lib/platforms';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
 export default function WishlistTable({ locale, t }: { locale: Locale; t: Dictionary }) {
-  const { favorites, ready, syncing, isAuthenticated, removeFavorite } = useBasket();
+  const { favorites, ready, syncing, isAuthenticated, removeFavorite, pendingFavorites } =
+    useBasket();
+  const { toast } = useCxToast();
+
+  /**
+   * Retrait d'un favori.
+   * L'écriture peut échouer (session expirée, réseau) : le fournisseur
+   * rétablit alors la ligne, et il faut le dire plutôt que de laisser
+   * l'élément réapparaître sans explication.
+   */
+  const onRemove = async (serviceId: string, name: string) => {
+    const result = await removeFavorite(serviceId);
+    toast(
+      result.ok
+        ? { tone: 'success', title: t.favorites.removed, description: name, duration: 2600 }
+        : { tone: 'error', title: t.favorites.error }
+    );
+  };
 
   if (!ready || syncing) return <p>{t.common.loading}</p>;
 
@@ -64,13 +82,16 @@ export default function WishlistTable({ locale, t }: { locale: Locale; t: Dictio
                       >
                         {t.services.order}
                       </Link>
+                      <span className="tm-wishlist-hint">{t.favorites.addToBasketHint}</span>
                     </td>
                     <td data-label="">
                       <button
                         type="button"
                         className="tm-wishlist-removeproduct"
                         aria-label={t.favorites.colRemove}
-                        onClick={() => removeFavorite(line.serviceId)}
+                        aria-busy={pendingFavorites.includes(line.serviceId)}
+                        disabled={pendingFavorites.includes(line.serviceId)}
+                        onClick={() => void onRemove(line.serviceId, line.name)}
                       >
                         <i className="ion-close" />
                       </button>

@@ -1,7 +1,7 @@
 'use client';
 
 import { gsap } from '@/lib/motion/gsap';
-import { EASE, distance, duration, stagger } from '@/lib/motion/config';
+import { EASE, distance, duration, prefersReducedMotion, stagger } from '@/lib/motion/config';
 
 /**
  * Animations réutilisables.
@@ -250,4 +250,116 @@ export function countUp(
       target.textContent = format(value);
     },
   });
+}
+
+/* =========================================================
+   Boutique — retours visuels d'ajout et de favori
+   ========================================================= */
+
+/** Cible du vol vers le panier, visible à l'écran, ou null. */
+function cartTarget(): HTMLElement | null {
+  const candidates = [
+    '.cx-bottomnav__item[href*="/cart"]',
+    '.cx-appbar .cx-iconbtn[aria-label]',
+    '.tm-header-icons a[href*="/cart"]',
+  ];
+
+  for (const selector of candidates) {
+    const element = document.querySelector<HTMLElement>(selector);
+    if (!element) continue;
+    const rect = element.getBoundingClientRect();
+    // Un élément masqué (barre basse sur desktop) a une boîte nulle.
+    if (rect.width > 0 && rect.height > 0) return element;
+  }
+  return null;
+}
+
+/**
+ * « Vol vers le panier ».
+ *
+ * Un clone de la vignette part de sa position, décrit une courbe et se
+ * réduit sur l'icône du panier. Le clone est en `position: fixed` et
+ * hors flux : il ne déplace jamais la mise en page.
+ *
+ * Si aucune icône de panier n'est visible — cas du desktop où la barre
+ * basse est masquée — on renvoie `false` et l'appelant se rabat sur un
+ * retour local (bouton en succès). Forcer une trajectoire vers une cible
+ * invisible enverrait la vignette dans un coin au hasard.
+ */
+export function flyToCart(source: HTMLElement | null): boolean {
+  if (!source || prefersReducedMotion()) return false;
+
+  const target = cartTarget();
+  if (!target) return false;
+
+  const from = source.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  if (from.width === 0 || from.height === 0) return false;
+
+  const clone = source.cloneNode(true) as HTMLElement;
+  clone.style.cssText = `
+    position: fixed;
+    left: ${from.left}px;
+    top: ${from.top}px;
+    width: ${from.width}px;
+    height: ${from.height}px;
+    margin: 0;
+    border-radius: 14px;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 200;
+    will-change: transform, opacity;
+  `;
+  document.body.appendChild(clone);
+
+  const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+  const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+
+  gsap
+    .timeline({ onComplete: () => clone.remove() })
+    // Léger élan vers le haut avant de plonger : une ligne droite
+    // paraît mécanique, l'arc se lit comme un geste.
+    .to(clone, { x: dx * 0.45, y: dy * 0.28 - 42, duration: 0.28, ease: 'power2.out' })
+    .to(clone, {
+      x: dx,
+      y: dy,
+      scale: 0.12,
+      autoAlpha: 0.35,
+      duration: 0.42,
+      ease: 'power2.in',
+    });
+
+  return true;
+}
+
+/** La pastille du panier accuse réception : 1 → 1.25 → 1. */
+export function badgePop(target: HTMLElement | null) {
+  if (!target || prefersReducedMotion()) return null;
+  return gsap
+    .timeline()
+    .to(target, { scale: 1.25, duration: 0.14, ease: 'power2.out' })
+    .to(target, { scale: 1, duration: 0.28, ease: 'elastic.out(1, 0.5)' });
+}
+
+/**
+ * Bascule du cœur.
+ * À l'ajout : léger dépassement d'échelle. Au retrait : simple retour,
+ * sans célébration — on ne fête pas une suppression.
+ */
+export function favoriteToggle(target: HTMLElement | null, favorited: boolean) {
+  if (!target || prefersReducedMotion()) return null;
+
+  if (!favorited) {
+    return gsap.fromTo(
+      target,
+      { scale: 0.85 },
+      { scale: 1, duration: 0.26, ease: 'power2.out' }
+    );
+  }
+
+  return gsap
+    .timeline()
+    .to(target, { scale: 0.8, duration: 0.09, ease: 'power2.in' })
+    .to(target, { scale: 1.3, duration: 0.16, ease: 'power2.out' })
+    .to(target, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.45)' });
 }

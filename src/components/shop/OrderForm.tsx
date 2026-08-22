@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBasket } from '@/components/providers/BasketProvider';
+import { useCxToast } from '@/components/motion/ToastProvider';
+import { flyToCart } from '@/lib/motion/presets';
 import { money } from '@/lib/format';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
@@ -50,6 +52,14 @@ export default function OrderForm({
 }) {
   const router = useRouter();
   const { add } = useBasket();
+  const { toast } = useCxToast();
+
+  /**
+   * État du bouton d'ajout : repos → envoi → confirmé → repos.
+   * Sans cette machine à états, deux clics rapprochés partaient tous les
+   * deux et rien n'indiquait que le premier avait abouti.
+   */
+  const [addState, setAddState] = useState<'idle' | 'busy' | 'done'>('idle');
 
   const needsQuantity = service.type !== 'Package';
   const [link, setLink] = useState('');
@@ -125,10 +135,21 @@ export default function OrderForm({
     return payload;
   };
 
-  const onAddToBasket = () => {
-    if (!validate()) return;
+  /**
+   * Ajout au panier.
+   *
+   * `add` renvoie désormais un résultat : un doublon (même service, même
+   * lien) est REFUSÉ et doit être annoncé comme tel. Auparavant le
+   * message « ajouté au panier » s'affichait alors que le panier n'avait
+   * pas bougé.
+   */
+  const onAddToBasket = (): boolean => {
+    if (!validate()) return false;
+    if (addState === 'busy') return false;
 
-    add({
+    setAddState('busy');
+
+    const result = add({
       serviceId: service.id,
       providerServiceId: service.provider_service_id,
       name: service.name,
@@ -142,12 +163,36 @@ export default function OrderForm({
       extras: buildExtras(),
     });
 
-    setNotice(t.service.addToBasket);
-    setTimeout(() => setNotice(null), 2500);
+    if (!result.ok) {
+      setAddState('idle');
+      setNotice(null);
+      setError(t.service.alreadyInBasket);
+      toast({ tone: 'info', title: t.service.alreadyInBasket });
+      return false;
+    }
+
+    setError(null);
+    setNotice(t.service.addedToBasket);
+    setAddState('done');
+
+    // La vignette rejoint l'icône du panier quand celle-ci est visible.
+    // Sinon le bouton en état « ajouté » porte seul la confirmation.
+    flyToCart(document.querySelector<HTMLElement>('.tm-platform-icon-lg'));
+
+    toast({ tone: 'success', title: t.service.addedToBasket, description: service.name });
+
+    window.setTimeout(() => {
+      setAddState('idle');
+      setNotice(null);
+    }, 1800);
+
+    return true;
   };
 
   const onOrderNow = () => {
     if (!validate()) return;
+    // Un doublon ne doit pas bloquer : la ligne est déjà au panier,
+    // on poursuit vers la validation.
     onAddToBasket();
     router.push(`/${locale}/checkout`);
   };
@@ -314,8 +359,16 @@ export default function OrderForm({
         </div>
 
         <div className="tm-form-field tm-orderform-actions">
-          <button type="button" className="tm-button" data-hover="raise" onClick={onAddToBasket}>
-            {t.service.addToBasket}
+          <button
+            type="button"
+            className={`tm-button${addState === 'done' ? ' is-done' : ''}`}
+            data-hover="raise"
+            disabled={addState === 'busy'}
+            onClick={() => void onAddToBasket()}
+          >
+            {addState === 'busy' && <span className="mx-spinner" aria-hidden="true" />}
+            {addState === 'done' && <i className="ion-checkmark" aria-hidden="true" />}
+            {addState === 'done' ? t.service.addedToBasket : t.service.addToBasket}
           </button>
           <button type="button" className="tm-button tm-button-dark" onClick={onOrderNow}>
             {t.service.orderNow}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useBasket } from '@/components/providers/BasketProvider';
+import CartBadge from '@/components/motion/CartBadge';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -54,7 +55,9 @@ export default function BottomNav({
             aria-current={active ? 'page' : undefined}
           >
             <i className={item.icon} />
-            {item.badge ? <span className="cx-bottomnav__badge">{item.badge}</span> : null}
+            {item.badge !== undefined && (
+              <CartBadge count={item.badge} className="cx-bottomnav__badge" />
+            )}
             {item.label}
           </Link>
         );
