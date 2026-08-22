@@ -6,11 +6,11 @@ import { useEffect, useState } from 'react';
 /**
  * Transition entre pages (§14).
  *
- * L'App Router n'expose pas encore de signal « navigation en cours » sur
- * cette version (`useLinkStatus` arrive plus tard). On écoute donc les
- * clics sur les liens internes en phase de capture : c'est le seul
- * moment où l'on sait qu'une navigation démarre, avant que React ne
- * suspende le rendu de la nouvelle page.
+ * `useLinkStatus` existe depuis Next 15.3, mais il ne renseigne que le
+ * lien qui l'englobe : impossible d'en tirer une barre unique en haut de
+ * page. On écoute donc les clics sur les liens internes en phase de
+ * capture — c'est le seul moment où l'on sait qu'une navigation démarre,
+ * avant que React ne suspende le rendu de la nouvelle page.
  *
  * La barre n'apparaît qu'au-delà d'un court délai : sur une page déjà en
  * cache, la navigation est instantanée et un éclair de barre serait plus
