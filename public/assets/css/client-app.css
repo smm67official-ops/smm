@@ -65,7 +65,7 @@
   border-bottom: 1px solid var(--cx-border);
 }
 
-.cx-appbar__logo img { height: 34px; width: auto; display: block; }
+.cx-appbar__logo img { height: 46px; width: auto; display: block; }
 .cx-appbar__spacer { flex: 1; }
 
 .cx-iconbtn {
@@ -1065,6 +1065,24 @@
     color: var(--cx-brand-ink);
     font-weight: 700;
   }
+
+  .cx-rail__back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--cx-muted);
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+
+  .cx-rail__back:hover { background: var(--cx-bg); color: var(--cx-ink); }
+  .cx-rail__back i { font-size: 16px; width: 20px; text-align: center; }
+  [dir='rtl'] .cx-rail__back i { transform: scaleX(-1); }
 
   .cx-rail__foot .cx-btn {
     width: 100%;

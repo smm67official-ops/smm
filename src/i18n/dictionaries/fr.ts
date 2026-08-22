@@ -477,6 +477,7 @@ const fr: Dictionary = {
   },
 
   dashboard: {
+    backToSite: 'Retour au site',
     navShop: 'Boutique',
     navCart: 'Panier',
     navOrders: 'Commandes',

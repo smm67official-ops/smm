@@ -474,6 +474,7 @@ const en = {
   },
 
   dashboard: {
+    backToSite: 'Back to site',
     navShop: 'Shop',
     navCart: 'Cart',
     navOrders: 'Orders',

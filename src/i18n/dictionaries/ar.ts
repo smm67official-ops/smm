@@ -475,6 +475,7 @@ const ar: Dictionary = {
   },
 
   dashboard: {
+    backToSite: 'العودة إلى الموقع',
     navShop: 'المتجر',
     navCart: 'السلة',
     navOrders: 'الطلبات',

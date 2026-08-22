@@ -185,6 +185,16 @@ export default function ClientChrome({
             <i className="ion-plus" />
             {t.dashboard.orderNow}
           </Link>
+
+          {/*
+            Sortie explicite vers le site : le rail remplace l'en-tête
+            marketing sur ces pages, sans ce lien le seul retour possible
+            était le logo — une cible que rien n'annonce.
+          */}
+          <Link href={`/${locale}`} className="cx-rail__back">
+            <i className="ion-ios-arrow-back" />
+            {t.dashboard.backToSite}
+          </Link>
         </div>
       </aside>
     </>

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Avatar, Button, Icon, type IconName } from '@/design-system';
 import { createClient } from '@/lib/supabase/client';
+import { BRAND } from '@/lib/brand';
 
 const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '', label: 'Dashboard', icon: 'grid' },
@@ -73,11 +74,14 @@ export default function AdminShell({
         className={`sv-admin__sidebar${open ? ' is-open' : ''}`}
         aria-hidden={undefined}
       >
-        <Link href={base} className="sv-navbar__brand" style={{ marginBottom: 'var(--sv-space-8)' }}>
-          <span className="sv-navbar__mark">
-            <Icon name="shield" size={18} />
-          </span>
-          <span>Admin</span>
+        {/*
+          Le logo de la plateforme plutôt qu'un écusson générique : on doit
+          savoir de quel panel il s'agit d'un coup d'œil, pas seulement
+          qu'on est « dans l'admin » — ce que la barre latérale dit déjà.
+        */}
+        <Link href={base} className="gp-sidebar-brand" aria-label={`${BRAND.name} — Admin`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.logo} alt={BRAND.name} />
         </Link>
 
         <nav className="sv-admin__nav">

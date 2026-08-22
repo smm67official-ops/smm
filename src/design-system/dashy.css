@@ -27,6 +27,40 @@
 }
 
 /* ---------------------------------------------------------
+   Marque dans la barre latérale
+   Le logo est large (677 x 369) et très aéré : on le dimensionne
+   en largeur, la hauteur suit.
+   --------------------------------------------------------- */
+.gp-sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--sv-space-6);
+  padding: 2px 0;
+}
+
+.gp-sidebar-brand img {
+  width: 100%;
+  /* La barre fait 256px avec 16px de marge de chaque côté : le logo
+     occupe toute la largeur utile. */
+  max-width: 224px;
+  height: auto;
+  display: block;
+}
+
+/* Rail réduit (tablette) : seule la marque tient, on recadre à gauche. */
+@media (min-width: 901px) and (max-width: 1024px) {
+  .gp-sidebar-brand { padding: 4px 0; }
+  .gp-sidebar-brand img {
+    width: 52px;
+    max-width: none;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: left center;
+  }
+}
+
+/* ---------------------------------------------------------
    Bandeau de page
    --------------------------------------------------------- */
 .gp-hero {

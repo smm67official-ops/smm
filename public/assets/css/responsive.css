@@ -318,13 +318,13 @@ button.tm-button.tm-button-white:hover {
   .tm-mobilenav-toggle { display: inline-flex; }
   .tm-navactions { gap: 4px; }
   .tm-navactions .tm-navbtn { padding: 0 11px; }
-  .tm-header-logo img { max-height: 52px; }
+  .tm-header-logo img { max-height: 62px; }
 }
 
 @media only screen and (max-width: 575px) {
   .tm-header-middlearea { padding: 12px 0; }
   .tm-header-search { margin-top: 12px; }
-  .tm-header-logo img { max-height: 46px; }
+  .tm-header-logo img { max-height: 54px; }
   .tm-navactions { gap: 6px; }
 
   /*
@@ -386,7 +386,7 @@ button.tm-button.tm-button-white:hover {
 
 /* Très petits écrans : chaque contrôle rend quelques pixels. */
 @media only screen and (max-width: 359px) {
-  .tm-header-logo img { max-height: 38px; }
+  .tm-header-logo img { max-height: 44px; }
   .tm-navactions { gap: 4px; }
   .tm-navlang-toggle { width: 36px; }
   .tm-navbtn-login { padding: 0 12px; font-size: 13px; }
