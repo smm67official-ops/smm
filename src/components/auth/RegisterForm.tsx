@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { authCallbackUrl } from '@/lib/site-url';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -34,14 +35,13 @@ export default function RegisterForm({ locale, t }: { locale: Locale; t: Diction
 
     setLoading(true);
     const supabase = createClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: { username: username.trim() },
-        emailRedirectTo: `${siteUrl}/auth/callback?next=/${locale}/account`,
+        emailRedirectTo: authCallbackUrl(locale),
       },
     });
 

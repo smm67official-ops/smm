@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { authCallbackUrl } from '@/lib/site-url';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -17,9 +18,8 @@ export default function ForgotPasswordForm({ locale, t }: { locale: Locale; t: D
     setError(null);
 
     const supabase = createClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${siteUrl}/auth/callback?next=/${locale}/account`,
+      redirectTo: authCallbackUrl(locale),
     });
 
     setLoading(false);
