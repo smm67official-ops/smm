@@ -23,8 +23,8 @@ const ar: Dictionary = {
   },
 
   header: {
-    phone: '+212 600 000 000',
-    email: 'support@smm67.com',
+    phone: '+212 603 227 436',
+    email: 'smm67official@gmail.com',
     searchPlaceholder: 'ابحث عن خدمة…',
     myAccount: 'حسابي',
     loginRegister: 'الدخول / التسجيل',
