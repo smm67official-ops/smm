@@ -6,7 +6,8 @@ import { getSessionUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getDictionary } from '@/i18n';
 import { money, formatDate } from '@/lib/format';
-import { BUSINESS_WHATSAPP, buildWhatsAppLink } from '@/lib/whatsapp';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
+import { getActiveWhatsAppNumber } from '@/lib/settings';
 import type { Locale } from '@/i18n/config';
 import type { Order, OrderItem } from '@/lib/supabase/types';
 
@@ -53,7 +54,7 @@ export default async function CheckoutSuccessPage({
   // L'assistance reste accessible, mais discrète : la commande est déjà
   // passée, rien n'oblige le client à écrire sur WhatsApp.
   const supportLink = buildWhatsAppLink(
-    BUSINESS_WHATSAPP,
+    await getActiveWhatsAppNumber(),
     `${t.support.orderIntro} #${order.id.slice(0, 8).toUpperCase()}`
   );
 

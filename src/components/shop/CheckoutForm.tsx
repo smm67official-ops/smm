@@ -8,7 +8,6 @@ import { useCxToast } from '@/components/motion/ToastProvider';
 import ActionNeededCard from '@/components/ui/ActionNeededCard';
 import { money } from '@/lib/format';
 import {
-  BUSINESS_WHATSAPP,
   buildWhatsAppLink,
   formatWhatsApp,
   isValidWhatsApp,
@@ -28,6 +27,7 @@ export default function CheckoutForm({
   balance,
   defaultWhatsapp,
   defaultName,
+  businessWhatsapp,
 }: {
   locale: Locale;
   t: Dictionary;
@@ -35,6 +35,8 @@ export default function CheckoutForm({
   balance: number;
   defaultWhatsapp?: string | null;
   defaultName?: string | null;
+  /** Numéro actif (Admin -> Parameters), lu en base par la page. */
+  businessWhatsapp: string;
 }) {
   const router = useRouter();
   const { basket, ready, total, clear } = useBasket();
@@ -69,7 +71,7 @@ export default function CheckoutForm({
   const canSubmit = signedIn && whatsappOk && nameOk && !insufficient && basket.length > 0;
 
   const topUpLink = buildWhatsAppLink(
-    BUSINESS_WHATSAPP,
+    businessWhatsapp,
     `${t.support.topUpIntro} ${money(total - balance)}.`
   );
 

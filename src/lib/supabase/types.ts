@@ -80,6 +80,32 @@ export type AdminTopUpRequest = {
   balance: number;
 };
 
+/** Numéro WhatsApp professionnel. Un seul porte `is_active` (contrainte en base). */
+export type WhatsAppNumber = {
+  id: string;
+  label: string;
+  /** Chiffres seuls, format international sans « + ». */
+  number: string;
+  note: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Moyen de paiement proposé au client pour recharger son portefeuille. */
+export type PaymentMethod = {
+  id: string;
+  name: string;
+  account_number: string | null;
+  rib: string | null;
+  icon_url: string | null;
+  instructions: string | null;
+  position: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OrderEvent = {
   id: string;
   order_id: string;
@@ -223,6 +249,8 @@ export type Database = {
       order_events: Row<OrderEvent, [FK<'order_id', 'orders'>]>;
       wallet_transactions: Row<WalletTransaction, [FK<'order_id', 'orders'>, FK<'user_id', 'profiles'>]>;
       topup_requests: Row<TopUpRequest, [FK<'user_id', 'profiles'>]>;
+      whatsapp_numbers: Row<WhatsAppNumber>;
+      payment_methods: Row<PaymentMethod>;
       newsletter_subscribers: Row<{ id: string; email: string; created_at: string }>;
       contact_messages: Row<{
         id: string;
@@ -240,6 +268,10 @@ export type Database = {
     };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      activate_whatsapp_number: {
+        Args: { p_id: string };
+        Returns: WhatsAppNumber;
+      };
       wallet_apply: {
         Args: {
           p_user_id: string;

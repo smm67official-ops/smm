@@ -464,6 +464,13 @@ const fr: Dictionary = {
     statusRejected: 'Refusée',
     statusCanceled: 'Annulée',
     statusPending: 'En attente',
+    methodsTitle: 'Moyens de paiement disponibles',
+    methodsLead: 'Payez par l’un de ces moyens, puis envoyez-nous le justificatif sur WhatsApp.',
+    methodsNone: 'Aucun moyen de paiement n’est configuré pour le moment. Contactez-nous et nous vous indiquerons comment payer.',
+    methodAccount: 'Compte',
+    methodRib: 'RIB',
+    copy: 'Copier',
+    copied: 'Copié',
     message: 'Bonjour, je souhaite recharger mon portefeuille SMM67 de {amount}. Référence : {ref}.',
   },
 

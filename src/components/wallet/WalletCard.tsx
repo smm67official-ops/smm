@@ -8,6 +8,7 @@ import { countUp } from '@/lib/motion/presets';
 import { money } from '@/lib/format';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
+import type { PaymentMethod } from '@/lib/supabase/types';
 
 /**
  * Carte portefeuille : solde, demandes en cours, et l'action principale
@@ -24,6 +25,8 @@ export default function WalletCard({
   pending = 0,
   showHistoryLink = true,
   defaultWhatsapp,
+  businessWhatsapp,
+  paymentMethods,
 }: {
   locale: Locale;
   t: Dictionary;
@@ -31,6 +34,9 @@ export default function WalletCard({
   pending?: number;
   showHistoryLink?: boolean;
   defaultWhatsapp?: string | null;
+  /** Numéro actif et moyens de paiement, lus en base par la page appelante. */
+  businessWhatsapp: string;
+  paymentMethods: PaymentMethod[];
 }) {
   const [open, setOpen] = useState(false);
   const valueRef = useRef<HTMLParagraphElement>(null);
@@ -85,6 +91,8 @@ export default function WalletCard({
         open={open}
         onClose={() => setOpen(false)}
         defaultWhatsapp={defaultWhatsapp}
+        businessWhatsapp={businessWhatsapp}
+        paymentMethods={paymentMethods}
       />
     </>
   );

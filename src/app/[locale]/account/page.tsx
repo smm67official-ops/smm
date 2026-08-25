@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/auth';
 import { getDictionary } from '@/i18n';
 import { money } from '@/lib/format';
-import { BUSINESS_WHATSAPP, buildWhatsAppLink } from '@/lib/whatsapp';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
+import { getActiveWhatsAppNumber, listPaymentMethods } from '@/lib/settings';
 import type { Locale } from '@/i18n/config';
 import type { Order, OrderItem } from '@/lib/supabase/types';
 
@@ -61,8 +62,13 @@ export default async function AccountPage({ params }: { params: Params }) {
   const name = user.profile?.full_name || user.profile?.username || user.email.split('@')[0];
   const balance = Number(user.profile?.balance ?? 0);
 
+  const [businessWhatsapp, paymentMethods] = await Promise.all([
+    getActiveWhatsAppNumber(),
+    listPaymentMethods(),
+  ]);
+
   const supportLink = buildWhatsAppLink(
-    BUSINESS_WHATSAPP,
+    businessWhatsapp,
     `${t.support.whatsappIntro} ${name}.`
   );
 
@@ -94,6 +100,8 @@ export default async function AccountPage({ params }: { params: Params }) {
             <WalletCard
               locale={l}
               t={t}
+              businessWhatsapp={businessWhatsapp}
+              paymentMethods={paymentMethods}
               balance={balance}
               pending={pendingTopUps ?? 0}
               defaultWhatsapp={user.profile?.phone ?? null}

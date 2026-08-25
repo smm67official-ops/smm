@@ -461,6 +461,13 @@ const en = {
     statusRejected: 'Declined',
     statusCanceled: 'Cancelled',
     statusPending: 'Pending',
+    methodsTitle: 'Available payment methods',
+    methodsLead: 'Pay with one of these, then send us the receipt on WhatsApp.',
+    methodsNone: 'No payment method is configured yet. Get in touch and we will tell you how to pay.',
+    methodAccount: 'Account',
+    methodRib: 'RIB',
+    copy: 'Copy',
+    copied: 'Copied',
     message: 'Hello, I would like to top up my SMM67 wallet with {amount}. Reference: {ref}.',
   },
 

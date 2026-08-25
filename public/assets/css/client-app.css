@@ -1431,3 +1431,137 @@
 }
 
 .cx-bonus.is-earned i { color: #15803d; }
+
+/* ---------------------------------------------------------------------
+   Moyens de paiement (recharge du portefeuille)
+
+   La liste est administrée depuis le back-office : le nombre d'entrées
+   et la longueur des libellés sont inconnus à l'écriture de ces règles.
+   Rien n'est donc dimensionné en dur — les coordonnées peuvent revenir
+   à la ligne, et un RIB de 24 chiffres ne pousse jamais la carte hors
+   de l'écran.
+--------------------------------------------------------------------- */
+.cx-paysection {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cx-border);
+}
+
+.cx-paysection__title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cx-ink);
+}
+
+.cx-topup__hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cx-muted);
+}
+
+.cx-paylist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cx-paylist__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--cx-border);
+  border-radius: var(--cx-radius-sm);
+  background: var(--cx-surface);
+}
+
+.cx-paylist__icon {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--cx-faint);
+  overflow: hidden;
+}
+
+.cx-paylist__icon img { object-fit: contain; }
+
+.cx-paylist__initials {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cx-brand-ink);
+}
+
+/* `min-width: 0` : sans lui, un RIB sans espace refuse de se couper et
+   élargit la ligne au-delà de la boîte de dialogue. */
+.cx-paylist__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cx-paylist__name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cx-ink);
+}
+
+.cx-paylist__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px dashed var(--cx-border);
+  border-radius: 8px;
+  background: var(--cx-bg);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.cx-paylist__value:hover,
+.cx-paylist__value:focus-visible {
+  border-color: var(--cx-brand);
+  background: var(--cx-brand-soft);
+}
+
+.cx-paylist__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--cx-muted);
+}
+
+.cx-paylist__number {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--cx-ink);
+  word-break: break-all;
+}
+
+.cx-paylist__copy {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cx-brand-ink);
+}
+
+.cx-paylist__note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--cx-muted);
+}

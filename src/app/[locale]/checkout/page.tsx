@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CheckoutForm from '@/components/shop/CheckoutForm';
+import { getActiveWhatsAppNumber } from '@/lib/settings';
 import { getSessionUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getDictionary } from '@/i18n';
@@ -52,6 +53,7 @@ export default async function CheckoutPage({ params }: { params: Params }) {
             balance={Number(user?.profile?.balance ?? 0)}
             defaultWhatsapp={lastWhatsapp}
             defaultName={user?.profile?.full_name ?? null}
+            businessWhatsapp={await getActiveWhatsAppNumber()}
           />
         </div>
       </main>

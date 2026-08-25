@@ -462,6 +462,13 @@ const ar: Dictionary = {
     statusRejected: 'مرفوض',
     statusCanceled: 'ملغى',
     statusPending: 'قيد الانتظار',
+    methodsTitle: 'طرق الدفع المتاحة',
+    methodsLead: 'ادفع بإحدى هذه الطرق، ثم أرسل لنا الوصل عبر واتساب.',
+    methodsNone: 'لا توجد طريقة دفع مُعدّة حاليًا. تواصل معنا وسنخبرك بكيفية الدفع.',
+    methodAccount: 'الحساب',
+    methodRib: 'RIB',
+    copy: 'نسخ',
+    copied: 'تم النسخ',
     message: 'مرحبًا، أود شحن محفظتي في SMM67 بمبلغ {amount}. المرجع: {ref}.',
   },
 

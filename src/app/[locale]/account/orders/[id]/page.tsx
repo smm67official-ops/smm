@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/auth';
 import { getDictionary } from '@/i18n';
 import { money, formatDate } from '@/lib/format';
-import { BUSINESS_WHATSAPP, buildWhatsAppLink, formatWhatsApp } from '@/lib/whatsapp';
+import { buildWhatsAppLink, formatWhatsApp } from '@/lib/whatsapp';
+import { getActiveWhatsAppNumber } from '@/lib/settings';
 import type { Locale } from '@/i18n/config';
 import type { Order, OrderEvent, OrderItem } from '@/lib/supabase/types';
 
@@ -50,13 +51,15 @@ export default async function CustomerOrderDetailPage({ params }: { params: Para
   // action claire plutôt que par un message d'erreur.
   const missingTarget = items.filter((item) => !item.link);
 
+  const businessWhatsapp = await getActiveWhatsAppNumber();
+
   const supportLink = buildWhatsAppLink(
-    BUSINESS_WHATSAPP,
+    businessWhatsapp,
     `${t.support.orderIntro} #${order.id.slice(0, 8).toUpperCase()}`
   );
 
   const completeLink = buildWhatsAppLink(
-    BUSINESS_WHATSAPP,
+    businessWhatsapp,
     `${t.support.completeIntro} #${order.id.slice(0, 8).toUpperCase()}`
   );
 

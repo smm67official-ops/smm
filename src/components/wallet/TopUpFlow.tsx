@@ -7,7 +7,9 @@ import CxDialog from '@/components/motion/CxDialog';
 import { useCxToast } from '@/components/motion/ToastProvider';
 import { successPop } from '@/lib/motion/presets';
 import { money } from '@/lib/format';
-import { BUSINESS_WHATSAPP, buildWhatsAppLink } from '@/lib/whatsapp';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
+import PaymentMethodList from '@/components/wallet/PaymentMethodList';
+import type { PaymentMethod } from '@/lib/supabase/types';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -41,12 +43,21 @@ export default function TopUpFlow({
   open,
   onClose,
   defaultWhatsapp,
+  businessWhatsapp,
+  paymentMethods,
 }: {
   locale: Locale;
   t: Dictionary;
   open: boolean;
   onClose: () => void;
   defaultWhatsapp?: string | null;
+  /**
+   * Numéro actif configuré dans Admin -> Parameters. Vide = aucun numéro
+   * actif : l'étape WhatsApp disparaît au lieu d'ouvrir un lien mort.
+   */
+  businessWhatsapp: string;
+  /** Moyens de paiement actifs, dans l'ordre défini par l'administrateur. */
+  paymentMethods: PaymentMethod[];
 }) {
   const router = useRouter();
   const { toast } = useCxToast();
@@ -83,13 +94,30 @@ export default function TopUpFlow({
     if (step === 'done' && checkRef.current) successPop(checkRef.current);
   }, [step]);
 
+  /*
+    Le message reprend les moyens de paiement actifs : le client part sur
+    WhatsApp avec les coordonnées sous les yeux, sans avoir à les
+    redemander. Retirer un moyen dans le back-office le retire d'ici au
+    message suivant.
+  */
+  const paymentLines = paymentMethods.map((method) => {
+    const parts = [
+      method.account_number?.trim() || null,
+      method.rib?.trim() ? `${t.topup.methodRib} : ${method.rib.trim()}` : null,
+    ].filter(Boolean);
+    return `• ${method.name}${parts.length ? ` — ${parts.join(' — ')}` : ''}`;
+  });
+
   const whatsappLink =
-    BUSINESS_WHATSAPP && reference
+    businessWhatsapp && reference
       ? buildWhatsAppLink(
-          BUSINESS_WHATSAPP,
-          t.topup.message
-            .replace('{amount}', money(amount))
-            .replace('{ref}', reference.slice(0, 8).toUpperCase())
+          businessWhatsapp,
+          [
+            t.topup.message
+              .replace('{amount}', money(amount))
+              .replace('{ref}', reference.slice(0, 8).toUpperCase()),
+            ...(paymentLines.length ? ['', `${t.topup.methodsTitle} :`, ...paymentLines] : []),
+          ].join('\n')
         )
       : null;
 
@@ -134,7 +162,7 @@ export default function TopUpFlow({
     router.refresh();
 
     // Sans numéro professionnel, l'étape WhatsApp n'apporte rien.
-    setStep(BUSINESS_WHATSAPP ? 'handoff' : 'done');
+    setStep(businessWhatsapp ? 'handoff' : 'done');
   };
 
   const pickPreset = (value: number) => {
@@ -258,6 +286,14 @@ export default function TopUpFlow({
             <b>#{reference?.slice(0, 8).toUpperCase()}</b>
           </div>
 
+          {/* Coordonnées de paiement : visibles ici, et reprises dans le
+              message WhatsApp pour rester accessibles hors ligne. */}
+          <div className="cx-paysection">
+            <p className="cx-paysection__title">{t.topup.methodsTitle}</p>
+            <p className="cx-topup__hint">{t.topup.methodsLead}</p>
+            <PaymentMethodList methods={paymentMethods} t={t} />
+          </div>
+
           {/*
             Vrai lien, pas un `window.open` différé : l'onglet s'ouvre sur
             le clic natif, donc jamais bloqué par le navigateur. La bascule
@@ -306,7 +342,7 @@ export default function TopUpFlow({
           <h3 style={{ margin: 0, fontFamily: 'Montserrat, sans-serif', fontSize: 19 }}>
             {t.topup.doneTitle}
           </h3>
-          <p>{BUSINESS_WHATSAPP ? t.topup.doneLead : t.topup.manualLead}</p>
+          <p>{businessWhatsapp ? t.topup.doneLead : t.topup.manualLead}</p>
 
           <div className="cx-stack" style={{ marginTop: 18 }}>
             <Link

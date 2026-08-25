@@ -13,6 +13,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '/customers', label: 'Customers', icon: 'users' },
   { href: '/topups', label: 'Top-ups', icon: 'card' },
   { href: '/services', label: 'Services', icon: 'bolt' },
+  { href: '/parameters', label: 'Parameters', icon: 'shield' },
 ];
 
 export default function AdminShell({

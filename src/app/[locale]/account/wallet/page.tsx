@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import WalletCard from '@/components/wallet/WalletCard';
 import { getSessionUser } from '@/lib/auth';
+import { getActiveWhatsAppNumber, listPaymentMethods } from '@/lib/settings';
 import { createClient } from '@/lib/supabase/server';
 import { getDictionary } from '@/i18n';
 import { money, formatDate } from '@/lib/format';
@@ -83,6 +84,8 @@ export default async function WalletPage({ params }: { params: Params }) {
             pending={pending}
             showHistoryLink={false}
             defaultWhatsapp={user.profile?.phone ?? null}
+            businessWhatsapp={await getActiveWhatsAppNumber()}
+            paymentMethods={await listPaymentMethods()}
           />
 
           {/* Demandes de recharge : l'état d'une demande doit être visible
