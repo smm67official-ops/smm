@@ -84,16 +84,44 @@ export async function POST(request: NextRequest) {
     (lockedRows ?? []).map((row) => [Number(row.provider_service_id), Number(row.rate)])
   );
 
+  /**
+   * Noms réécrits pour la boutique : les libellés fournisseur sont bruts
+   * (« ~ [A] ~ Max 100k ~ INSTANT »). Le nom d'origine reste importé
+   * dans `provider_name`, seul l'affichage est préservé.
+   */
+  const { data: namedRows, error: namedError } = await supabase
+    .from('services')
+    .select('provider_service_id, name')
+    .eq('provider', 'smmgen')
+    .eq('name_locked', true);
+
+  /*
+    La migration 008 peut ne pas être appliquée. Plutôt que de faire
+    échouer tout l'import sur une colonne absente — le catalogue serait
+    alors figé —, on repère le cas et on synchronise sans la
+    fonctionnalité de renommage.
+  */
+  const supportsRename = !namedError;
+  if (namedError && !/column .* does not exist|schema cache/i.test(namedError.message)) {
+    return NextResponse.json({ error: namedError.message }, { status: 500 });
+  }
+
+  const lockedName = new Map(
+    (namedRows ?? []).map((row) => [Number(row.provider_service_id), String(row.name)])
+  );
+
   // 2. Services — le prix de vente applique la marge sur le prix fournisseur.
   const serviceRows = services.map((s) => {
     const providerRate = Number(s.rate);
     const providerServiceId = Number(s.service);
     const locked = lockedRate.get(providerServiceId);
+    const renamed = lockedName.get(providerServiceId);
 
     return {
       provider: 'smmgen',
       provider_service_id: providerServiceId,
-      name: s.name,
+      name: renamed ?? s.name,
+      ...(supportsRename ? { provider_name: s.name, name_locked: renamed !== undefined } : {}),
       type: s.type || 'Default',
       category_name: s.category,
       category_id: categoryIdByName.get(s.category) ?? null,
@@ -137,6 +165,7 @@ export async function POST(request: NextRequest) {
     categories: categoryRows.length,
     services: serviceRows.length,
     skipped: skippedCount,
+    renameSupported: supportsRename,
     priceLocked: lockedRate.size,
     markupPercent: markupPercent(),
   });

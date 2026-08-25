@@ -1,7 +1,7 @@
 -- =============================================================
 --  SMM67 — schéma complet
 --
---  Regroupe schema.sql et les migrations 002 à 007 en un seul script.
+--  Regroupe schema.sql et les migrations 002 à 008 en un seul script.
 --
 --  À exécuter dans Supabase Studio > SQL Editor.
 --
@@ -142,6 +142,34 @@ alter table public.services
 
 comment on column public.services.rate_locked is
   'true = prix de vente fixé manuellement, protégé de la synchronisation.';
+
+
+/*
+  Le nom d'origine est conservé à part plutôt que remplacé.
+
+  `services.name` reste ce que voit le client : rien à changer dans les
+  pages, le panier ou les tableaux. `provider_name` garde le libellé du
+  fournisseur, qui sert à retrouver un service dans son back-office ou
+  auprès de son support — une information qu'un simple écrasement aurait
+  fait disparaître, et qu'aucune synchronisation ne pourrait restituer
+  une fois le service retiré du catalogue.
+*/
+alter table public.services
+  add column if not exists provider_name text,
+  add column if not exists name_locked   boolean not null default false;
+
+-- Services déjà importés : le nom actuel EST le nom fournisseur.
+update public.services
+   set provider_name = name
+ where provider_name is null;
+
+comment on column public.services.provider_name is
+  'Libellé d''origine chez le fournisseur, toujours synchronisé.';
+comment on column public.services.name_locked is
+  'true = nom réécrit par un administrateur, protégé de la synchronisation.';
+
+create index if not exists services_name_locked_idx
+  on public.services (name_locked) where name_locked = true;
 
 create index if not exists services_category_idx    on public.services (category_id);
 create index if not exists services_platform_idx    on public.services (platform);

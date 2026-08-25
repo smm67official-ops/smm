@@ -157,6 +157,10 @@ export type Service = {
   description: string | null;
   is_active: boolean;
   rate_locked: boolean;
+  /** Libellé d'origine chez le fournisseur, toujours synchronisé. */
+  provider_name: string | null;
+  /** true = nom réécrit par un administrateur, protégé de la synchronisation. */
+  name_locked: boolean;
   synced_at: string;
   created_at: string;
 };

@@ -21,12 +21,17 @@ export default function AdminServicesTable({
   const { toast } = useToast();
 
   const [editing, setEditing] = useState<Service | null>(null);
-  const [form, setForm] = useState({ rate: 0, min: 0, max: 0 });
+  const [form, setForm] = useState({ name: '', rate: 0, min: 0, max: 0 });
   const [busy, setBusy] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const openEdit = (service: Service) => {
-    setForm({ rate: Number(service.rate), min: service.min, max: service.max });
+    setForm({
+      name: service.name,
+      rate: Number(service.rate),
+      min: service.min,
+      max: service.max,
+    });
     setEditing(service);
   };
 
@@ -44,7 +49,14 @@ export default function AdminServicesTable({
     if (!editing) return;
     setBusy(true);
 
+    if (!form.name.trim()) {
+      toast({ tone: 'error', title: 'Name cannot be empty' });
+      setBusy(false);
+      return;
+    }
+
     const { ok, result } = await patch(editing.id, {
+      name: form.name,
       rate: Number(form.rate),
       min: Number(form.min),
       max: Number(form.max),
@@ -57,6 +69,24 @@ export default function AdminServicesTable({
     }
 
     toast({ tone: 'success', title: 'Service updated' });
+    setEditing(null);
+    router.refresh();
+  };
+
+  /** Restaure le libellé du fournisseur, immédiatement. */
+  const unlockName = async () => {
+    if (!editing) return;
+    setBusy(true);
+
+    const { ok, result } = await patch(editing.id, { unlockName: true });
+    setBusy(false);
+
+    if (!ok) {
+      toast({ tone: 'error', title: 'Update failed', description: result.error });
+      return;
+    }
+
+    toast({ tone: 'success', title: 'Provider name restored' });
     setEditing(null);
     router.refresh();
   };
@@ -198,7 +228,7 @@ export default function AdminServicesTable({
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
         title="Edit service"
-        description={editing?.name}
+        description={editing?.provider_name ?? editing?.name}
         footer={
           <>
             <Button variant="secondary" onClick={() => setEditing(null)}>
@@ -211,6 +241,32 @@ export default function AdminServicesTable({
         }
       >
         <div className="sv-stack" style={{ gap: 'var(--sv-space-4)' }}>
+          <Input
+            label="Display name"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            hint={
+              editing?.name_locked
+                ? 'Renamed: this label survives every catalogue sync.'
+                : 'Provider label. Saving keeps your wording through future syncs.'
+            }
+          />
+
+          {editing?.name_locked && editing.provider_name && (
+            <>
+              <Input
+                label="Provider label"
+                value={editing.provider_name}
+                readOnly
+                hint="Kept for reference when contacting the provider."
+              />
+              <button type="button" className="gp-btn gp-btn--sm" onClick={unlockName} disabled={busy}>
+                <Icon name="refresh" size={13} />
+                Back to provider name
+              </button>
+            </>
+          )}
+
           <Input
             label="Provider cost / 1000"
             value={editing ? rate(editing.provider_rate) : ''}
