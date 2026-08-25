@@ -1,0 +1,55 @@
+# Rafraîchissement du statut des commandes.
+#
+# Le plan Hobby de Vercel n'autorise qu'une exécution planifiée par jour :
+# `vercel.json` s'y tient. Une commande en cours a pourtant besoin d'un
+# suivi plus fin — attendre 24 h pour voir passer une livraison rend le
+# tableau de bord client inutilisable.
+#
+# Ce planificateur externe appelle le même point d'entrée que Vercel, avec
+# le même jeton. Il ne double aucune logique métier.
+#
+# Prérequis — deux secrets dans Settings > Secrets and variables > Actions :
+#   SITE_URL     https://votre-domaine  (sans barre oblique finale)
+#   CRON_SECRET  la même valeur que la variable d'environnement Vercel
+#
+# À savoir : les planifications GitHub sont « au mieux ». Un retard de
+# quelques minutes est courant aux heures chargées, et les workflows
+# planifiés sont désactivés après 60 jours sans activité sur le dépôt.
+
+name: Sync order status
+
+on:
+  schedule:
+    # Toutes les 10 minutes. GitHub impose un intervalle minimal de 5 min.
+    - cron: '*/10 * * * *'
+  # Permet de déclencher un rafraîchissement à la demande depuis l'onglet Actions.
+  workflow_dispatch:
+
+# Une seule exécution à la fois : deux synchronisations simultanées
+# interrogeraient le fournisseur en double pour rien.
+concurrency:
+  group: sync-order-status
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Appeler le point d'entrée de synchronisation
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "SITE_URL ou CRON_SECRET manquant — workflow ignoré."
+            exit 0
+          fi
+
+          # --fail-with-body : un statut HTTP d'erreur fait échouer l'étape,
+          # tout en affichant la réponse pour le diagnostic.
+          curl --silent --show-error --fail-with-body \
+               --max-time 120 \
+               --header "authorization: Bearer $CRON_SECRET" \
+               "$SITE_URL/api/cron/sync-status"
