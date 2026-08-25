@@ -18,24 +18,58 @@ const MAX_WIDTH = { sm: 420, md: 520, lg: 720 };
 export default function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  /*
+    `onClose` derrière une référence.
+
+    L'effet ci-dessous en dépendait directement. Or l'appelant le
+    redéfinit à chaque rendu (`onClose={() => …}`), donc l'effet se
+    rejouait à chaque frappe : il redonnait le focus au panneau, et la
+    saisie s'arrêtait après un caractère. Le passer par une référence
+    garde le gestionnaire à jour sans réabonnement.
+  */
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   // Fermeture au clavier + verrouillage du défilement de la page.
   useEffect(() => {
     if (!open) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
 
     document.addEventListener('keydown', onKeyDown);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    panelRef.current?.focus();
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, onClose]);
+  }, [open]);
+
+  /*
+    Focus initial, une seule fois par ouverture.
+
+    On vise le premier champ plutôt que le panneau : une boîte de
+    dialogue de saisie sert à saisir, et l'utilisateur peut taper sans
+    cliquer d'abord. À défaut de champ, le panneau reçoit le focus pour
+    que la lecture d'écran commence au bon endroit et qu'Échap réponde.
+  */
+  useEffect(() => {
+    if (!open) return;
+
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const field = panel.querySelector<HTMLElement>(
+      'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])'
+    );
+
+    (field ?? panel).focus();
+  }, [open]);
 
   if (!open) return null;
 
