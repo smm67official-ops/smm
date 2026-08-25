@@ -84,6 +84,29 @@ const newId = () =>
     ? crypto.randomUUID()
     : `l-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
+/**
+ * Un service ne peut figurer qu'une fois dans les favoris.
+ *
+ * La contrainte `unique (user_id, service_id)` garantit l'unicité en
+ * base, mais l'état client était alimenté par trois chemins — hydratation
+ * locale, synchronisation, ajout optimiste — dont l'entrelacement pouvait
+ * produire deux entrées pour un même service. La liste affichait alors un
+ * doublon, et le retirer semblait sans effet puisqu'il restait sa copie.
+ *
+ * Plutôt que de sérialiser ces chemins, on rend le doublon impossible :
+ * toute écriture passe par ce filtre.
+ */
+function uniqueFavorites(lines: FavoriteLine[]): FavoriteLine[] {
+  const seen = new Set<string>();
+  const out: FavoriteLine[] = [];
+  for (const line of lines) {
+    if (!line?.serviceId || seen.has(line.serviceId)) continue;
+    seen.add(line.serviceId);
+    out.push(line);
+  }
+  return out;
+}
+
 function read<T>(key: string): T[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -113,7 +136,17 @@ export function BasketProvider({
   userId?: string | null;
 }) {
   const [basket, setBasket] = useState<BasketLine[]>([]);
-  const [favorites, setFavorites] = useState<FavoriteLine[]>([]);
+  const [favorites, setFavoritesRaw] = useState<FavoriteLine[]>([]);
+
+  /** Point d'écriture unique : garantit l'absence de doublon. */
+  const setFavorites = useCallback(
+    (next: FavoriteLine[] | ((prev: FavoriteLine[]) => FavoriteLine[])) => {
+      setFavoritesRaw((prev) =>
+        uniqueFavorites(typeof next === 'function' ? next(prev) : next)
+      );
+    },
+    []
+  );
   const [ready, setReady] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [pendingFavorites, setPendingFavorites] = useState<string[]>([]);
@@ -124,7 +157,7 @@ export function BasketProvider({
     setBasket(migrate(read<BasketLine>(BASKET_KEY)));
     setFavorites(read<FavoriteLine>(FAVORITES_KEY));
     setReady(true);
-  }, []);
+  }, [setFavorites]);
 
   /*
     2. Session : la base fait autorité pour la wishlist.
@@ -165,9 +198,22 @@ export function BasketProvider({
           );
       }
 
+      /*
+        Le filtre `user_id` est indispensable et ne peut PAS être délégué
+        à la RLS : la politique de lecture est
+        `auth.uid() = user_id OR is_admin()`. Pour un compte
+        administrateur, une requête non filtrée renvoyait donc les favoris
+        de TOUS les clients, que l'interface affichait comme les siens —
+        et qu'un retrait supprimait réellement.
+
+        La politique reste utile (consultation d'un compte par le
+        support) ; c'est à l'appelant de dire de quel portefeuille de
+        favoris il parle.
+      */
       const { data, error } = await supabase
         .from('wishlists')
         .select('service_id, services ( id, name, rate, platform )')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -192,7 +238,7 @@ export function BasketProvider({
     };
 
     void sync();
-  }, [ready, userId]);
+  }, [ready, userId, setFavorites]);
 
   // 3. Miroir local : panier toujours, favoris en secours hors ligne.
   useEffect(() => {

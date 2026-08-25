@@ -155,20 +155,50 @@ check(
 
 // ---------------------------------------------------------------------
 console.log('\n== Favoris ==');
+
+/*
+  Les favoris persistent en base d'une exécution à l'autre. Les vider par
+  l'interface ne suffit pas : elle n'affiche que l'état déjà synchronisé,
+  et laissait des lignes derrière elle. On remet donc la table à zéro à la
+  source, avec la clé de service.
+*/
+const resetWishlist = async () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return 'clés absentes — lancez avec: node --env-file=.env.local';
+
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+  const users = await (await fetch(`${url}/auth/v1/admin/users?per_page=100`, { headers })).json();
+  const me = (users.users ?? []).find((u) => u.email === EMAIL);
+  if (!me) return 'compte introuvable';
+
+  await fetch(`${url}/rest/v1/wishlists?user_id=eq.${me.id}`, { method: 'DELETE', headers });
+  return null;
+};
+
+const resetError = await resetWishlist();
+check('remise à zéro des favoris', resetError === null, resetError ?? '');
+
+await page.evaluate(() => localStorage.removeItem('smm.favorites'));
+
 await page.goto(`${BASE}/fr/services`, { waitUntil: 'networkidle' });
 await page.waitForTimeout(800);
 
 const heart = page.locator('.tm-favorite-toggle').first();
 await heart.click();
-await page.waitForTimeout(1200);
+await page.waitForTimeout(1500);
 let favs = await favorites(page);
-check('favori ajouté', favs.length >= 1, `favoris=${favs.length}`);
+check('un favori ajouté', favs.length === 1, `favoris=${favs.length}`);
 
-const favCount = favs.length;
 await page.reload({ waitUntil: 'networkidle' });
-await page.waitForTimeout(1600);
+await page.waitForTimeout(2200);
 favs = await favorites(page);
-check('favori conservé après rechargement', favs.length === favCount, `favoris=${favs.length}`);
+check('favori conservé après rechargement', favs.length === 1, `favoris=${favs.length}`);
+check(
+  'aucun doublon dans les favoris',
+  new Set(favs.map((f) => f.serviceId)).size === favs.length,
+  JSON.stringify(favs.map((f) => f.serviceId))
+);
 
 await page.goto(`${BASE}/fr/wishlist`, { waitUntil: 'networkidle' });
 await page.waitForTimeout(1400);
