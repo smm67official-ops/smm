@@ -349,6 +349,7 @@ const fr: Dictionary = {
   auth: {
     loginTitle: 'Connexion',
     google: 'Continuer avec Google',
+    linkInvalid: 'Ce lien n’est plus valide : il a expiré, a déjà servi, ou a été tronqué par votre messagerie. Demandez-en un nouveau.',
     googleDisabled: 'La connexion Google n’est pas encore activée. Utilisez votre e-mail et votre mot de passe.',
     or: 'ou',
     blocked: 'Votre compte a été bloqué. Veuillez contacter un administrateur.',

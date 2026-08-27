@@ -103,12 +103,28 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
       {!error && callbackError === 'account_blocked' && (
         <p className="tm-alert tm-alert-error">{t.auth.blocked}</p>
       )}
+      {/* Lien de confirmation périmé ou tronqué : dire quoi faire. */}
+      {!error && callbackError === 'missing_code' && (
+        <p className="tm-alert tm-alert-error">{t.auth.linkInvalid}</p>
+      )}
       {/* Le motif réel prime sur le « missing_code » du serveur. */}
       {!error && providerError && (
         <p className="tm-alert tm-alert-error" role="alert">
           {providerError}
         </p>
       )}
+      {/*
+        Motif transmis en clair par /auth/callback. `missing_code` et
+        `account_blocked` ont déjà leur message ; tout le reste vient du
+        fournisseur et se lit tel quel.
+      */}
+      {!error && !providerError && callbackError &&
+        callbackError !== 'missing_code' &&
+        callbackError !== 'account_blocked' && (
+          <p className="tm-alert tm-alert-error" role="alert">
+            {callbackError}
+          </p>
+        )}
 
       <div className="tm-form-inner">
         <div className="tm-form-field">

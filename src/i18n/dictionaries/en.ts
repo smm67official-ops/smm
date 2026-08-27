@@ -347,6 +347,7 @@ const en = {
   auth: {
     loginTitle: 'Login',
     google: 'Continue with Google',
+    linkInvalid: 'This link is no longer valid: it expired, was already used, or was truncated by your email client. Request a new one.',
     googleDisabled: 'Google sign-in is not enabled yet. Please use your email and password.',
     or: 'or',
     blocked: 'Your account has been blocked. Please contact an administrator.',

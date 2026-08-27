@@ -45,9 +45,24 @@ export async function GET(request: NextRequest) {
   const loginUrl = (error?: string) =>
     `${origin}/${locale}/login${error ? `?error=${encodeURIComponent(error)}` : ''}`;
 
+  /*
+    Le fournisseur peut renvoyer son échec dans la CHAÎNE DE REQUÊTE —
+    `?error=server_error&error_description=...` — et pas seulement dans
+    le fragment. Ce cas-là est visible du serveur, et il doit primer :
+    répondre « missing_code » serait exact (il n'y a pas de code) mais
+    masquerait la vraie raison, par exemple « Unable to exchange external
+    code », qui signale un Client Secret erroné côté Supabase.
+  */
+  const providerError = searchParams.get('error_description') ?? searchParams.get('error');
+
+  if (providerError) {
+    console.error('[auth/callback] échec du fournisseur :', providerError);
+    return NextResponse.redirect(loginUrl(providerError));
+  }
+
   if (!code) {
-    // Lien ouvert sans code : expiré, déjà utilisé, ou tronqué par le
-    // client de messagerie.
+    // Lien ouvert sans code ni erreur : expiré, déjà utilisé, ou tronqué
+    // par le client de messagerie.
     return NextResponse.redirect(loginUrl('missing_code'));
   }
 
