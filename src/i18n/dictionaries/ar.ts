@@ -338,6 +338,7 @@ const ar: Dictionary = {
   auth: {
     loginTitle: 'تسجيل الدخول',
     google: 'المتابعة باستخدام Google',
+    googleDisabled: 'لم يتم تفعيل تسجيل الدخول عبر Google بعد. يرجى استخدام بريدك الإلكتروني وكلمة المرور.',
     or: 'أو',
     blocked: 'تم حظر حسابك. يرجى الاتصال بالمسؤول.',
     loginSubtitle: 'ادخل إلى لوحة التحكم وطلباتك.',

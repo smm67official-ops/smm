@@ -336,6 +336,7 @@ const en = {
   auth: {
     loginTitle: 'Login',
     google: 'Continue with Google',
+    googleDisabled: 'Google sign-in is not enabled yet. Please use your email and password.',
     or: 'or',
     blocked: 'Your account has been blocked. Please contact an administrator.',
     loginSubtitle: 'Access your dashboard and your orders.',

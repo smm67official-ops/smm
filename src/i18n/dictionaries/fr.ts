@@ -338,6 +338,7 @@ const fr: Dictionary = {
   auth: {
     loginTitle: 'Connexion',
     google: 'Continuer avec Google',
+    googleDisabled: 'La connexion Google n’est pas encore activée. Utilisez votre e-mail et votre mot de passe.',
     or: 'ou',
     blocked: 'Votre compte a été bloqué. Veuillez contacter un administrateur.',
     loginSubtitle: 'Accédez à votre tableau de bord et à vos commandes.',

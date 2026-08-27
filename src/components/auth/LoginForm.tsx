@@ -115,9 +115,6 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
         </div>
 
         <div className="tm-form-field">
-          <div className="tm-or" role="separator">
-            <span>{t.auth.or}</span>
-          </div>
           <GoogleButton locale={locale} t={t} next={redirectTo} />
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
@@ -24,6 +24,45 @@ export default function GoogleButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /*
+    Le fournisseur est-il activé côté Supabase ?
+
+    `signInWithOAuth` provoque une navigation complète : si Google n'est
+    pas activé, Supabase répond directement une page JSON
+    « Unsupported provider », hors de l'application — aucun message
+    affiché ici ne pourrait l'intercepter.
+
+    On interroge donc `/auth/v1/settings`, qui expose publiquement la
+    liste des fournisseurs actifs, et le bouton n'apparaît que s'il mène
+    quelque part. Activer Google dans le tableau de bord le fait
+    apparaître sans redéploiement.
+  */
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) {
+      setEnabled(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((settings) => {
+        if (!cancelled) setEnabled(Boolean(settings?.external?.google));
+      })
+      .catch(() => {
+        if (!cancelled) setEnabled(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const signIn = async () => {
     setLoading(true);
@@ -49,13 +88,32 @@ export default function GoogleButton({
       redirige vers la connexion avec `missing_code`.
     */
     if (oauthError) {
-      setError(oauthError.message);
+      /*
+        « provider is not enabled » veut dire que Google n'a pas été
+        activé dans Supabase — rien à corriger dans le code. Le message
+        brut enverrait chercher une panne applicative ; on dit où aller.
+      */
+      setError(
+        /provider is not enabled|Unsupported provider/i.test(oauthError.message)
+          ? t.auth.googleDisabled
+          : oauthError.message
+      );
       setLoading(false);
     }
   };
 
+  // Tant que l'état est inconnu, on n'affiche rien : un bouton qui
+  // apparaît puis disparaît ferait douter de sa disponibilité.
+  if (enabled !== true) return null;
+
   return (
     <>
+      {/* Le séparateur appartient au bouton : affichés ou masqués
+          ensemble, jamais un « ou » sans rien après lui. */}
+      <div className="tm-or" role="separator">
+        <span>{t.auth.or}</span>
+      </div>
+
       <button
         type="button"
         className="tm-button tm-button--google"
