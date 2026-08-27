@@ -335,6 +335,17 @@ const fr: Dictionary = {
     viewOrders: 'Voir mes commandes',
   },
 
+  onboarding: {
+    title: 'Bienvenue {name} 👋',
+    subtitle: 'Encore deux informations et votre compte est prêt.',
+    whatsappLabel: 'Votre numéro WhatsApp',
+    whatsappHint: 'C’est par là que nous confirmons vos recharges et vos commandes.',
+    platformsLabel: 'Les plateformes qui vous intéressent',
+    platformsHint: 'Choisissez-en au moins une. Votre catalogue commencera par celles-ci.',
+    submit: 'Créer mon compte',
+    saving: 'Création…',
+  },
+
   auth: {
     loginTitle: 'Connexion',
     google: 'Continuer avec Google',

@@ -23,8 +23,8 @@ const page = await context.newPage();
 
 await page.goto(`${BASE}/fr/login`, { waitUntil: 'networkidle' });
 const form = page.locator('form.tm-login-form');
-await form.locator('input[type="email"]').fill('aamirelamiri@admin.com');
-await form.locator('input[type="password"]').fill('123456789');
+await form.locator('input[type="email"]').fill('admin@smm67.com');
+await form.locator('input[type="password"]').fill('Admin@2026!');
 await form.locator('button[type="submit"]').click();
 await page.waitForURL((u) => !u.pathname.includes('/login'));
 

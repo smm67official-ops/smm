@@ -8,8 +8,8 @@
 import { chromium } from 'playwright';
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
-const EMAIL = process.env.AUDIT_EMAIL ?? 'aamirelamiri@admin.com';
-const PASSWORD = process.env.AUDIT_PASSWORD ?? '123456789';
+const EMAIL = process.env.AUDIT_EMAIL ?? 'admin@smm67.com';
+const PASSWORD = process.env.AUDIT_PASSWORD ?? 'Admin@2026!';
 
 const WIDTHS = [
   { name: 'mobile', width: 360, height: 780 },

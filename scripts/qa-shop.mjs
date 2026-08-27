@@ -9,8 +9,8 @@
 import { chromium } from 'playwright';
 
 const BASE = process.argv[2] ?? 'http://localhost:3000';
-const EMAIL = process.env.QA_EMAIL ?? 'aamirelamiri@admin.com';
-const PASSWORD = process.env.QA_PASSWORD ?? '123456789';
+const EMAIL = process.env.QA_EMAIL ?? 'admin@smm67.com';
+const PASSWORD = process.env.QA_PASSWORD ?? 'Admin@2026!';
 
 let pass = 0;
 let fail = 0;

@@ -18,6 +18,10 @@ export type Profile = {
   blocked_at: string | null;
   blocked_by: string | null;
   block_reason: string | null;
+  /** Finalisation du profil (migration 010). */
+  whatsapp: string | null;
+  platforms: string[];
+  onboarded_at: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -335,6 +335,17 @@ const ar: Dictionary = {
     viewOrders: 'عرض طلباتي',
   },
 
+  onboarding: {
+    title: 'مرحبا {name} 👋',
+    subtitle: 'معلومتان إضافيتان وحسابك جاهز.',
+    whatsappLabel: 'رقم واتساب الخاص بك',
+    whatsappHint: 'عبره نؤكد عمليات الشحن والطلبات.',
+    platformsLabel: 'المنصات التي تهمك',
+    platformsHint: 'اختر واحدة على الأقل. سيبدأ الكتالوج بها.',
+    submit: 'إنشاء حسابي',
+    saving: 'جارٍ الإنشاء…',
+  },
+
   auth: {
     loginTitle: 'تسجيل الدخول',
     google: 'المتابعة باستخدام Google',

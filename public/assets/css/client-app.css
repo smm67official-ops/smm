@@ -1613,3 +1613,75 @@
   height: 1px;
   background: #e4e6ea;
 }
+
+/* ---------------------------------------------------------------------
+   Finalisation du profil
+
+   Grille de plateformes en cases à cocher réelles : la case native est
+   masquée visuellement mais reste dans le flux du clavier et annoncée
+   par les lecteurs d'écran, ce qu'une grille de <div> cliquables ne
+   ferait pas.
+--------------------------------------------------------------------- */
+.tm-onboarding { max-width: 560px; margin: 32px auto; }
+
+.tm-field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--cx-muted, #6b7280);
+}
+
+.tm-platformgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tm-platformchip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid var(--cx-border, #e4e6ea);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.tm-platformchip:hover { border-color: #c9ccd2; }
+
+/* Masquée à l'œil, jamais au clavier : `display:none` la sortirait de
+   l'ordre de tabulation et rendrait la grille inutilisable sans souris. */
+.tm-platformchip input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.tm-platformchip:focus-within {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .18);
+  border-color: #2563eb;
+}
+
+.tm-platformchip.is-checked {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.tm-platformchip__dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #eef1f5;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+}

@@ -333,6 +333,17 @@ const en = {
     viewOrders: 'View my orders',
   },
 
+  onboarding: {
+    title: 'Welcome {name} 👋',
+    subtitle: 'Two more details and your account is ready.',
+    whatsappLabel: 'Your WhatsApp number',
+    whatsappHint: 'This is how we confirm your top-ups and orders.',
+    platformsLabel: 'Platforms you are interested in',
+    platformsHint: 'Pick at least one. Your catalogue will start with these.',
+    submit: 'Create my account',
+    saving: 'Creating…',
+  },
+
   auth: {
     loginTitle: 'Login',
     google: 'Continue with Google',

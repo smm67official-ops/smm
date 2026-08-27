@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('id, full_name, avatar_url, is_blocked')
+      .select('id, full_name, avatar_url, is_blocked, onboarded_at')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -104,6 +104,20 @@ export async function GET(request: NextRequest) {
       metadata: { provider: user.app_metadata?.provider ?? 'email' },
       ip: clientIp(request),
     });
+
+    /*
+      Compte neuf : Google fournit un e-mail et un nom, jamais un numéro
+      de téléphone. On demande donc le WhatsApp et les plateformes avant
+      d'ouvrir le tableau de bord — sans ce numéro, le client est
+      injoignable pour une recharge ou une commande.
+
+      `onboarded_at === undefined` signifie que la colonne n'existe pas
+      encore (migration 010) : l'étape est alors ignorée, et la connexion
+      se termine comme avant.
+    */
+    if (profile && profile.onboarded_at === null) {
+      return NextResponse.redirect(`${origin}/${locale}/onboarding`);
+    }
   }
 
   return NextResponse.redirect(`${origin}${next}`);
