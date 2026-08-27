@@ -12,8 +12,10 @@ import {
   Modal,
   Select,
   useToast,
+  Textarea,
 } from '@/design-system';
 import WalletModal from '@/components/admin/WalletModal';
+import BalanceModal from '@/components/admin/BalanceModal';
 import type { Profile } from '@/lib/supabase/types';
 
 export type CustomerRow = Profile & { orders: number; spent: number };
@@ -52,6 +54,9 @@ export default function AdminCustomersTable({
   const [editing, setEditing] = useState<CustomerRow | null>(null);
   const [deleting, setDeleting] = useState<CustomerRow | null>(null);
   const [wallet, setWallet] = useState<CustomerRow | null>(null);
+  const [balance, setBalance] = useState<CustomerRow | null>(null);
+  const [blocking, setBlocking] = useState<CustomerRow | null>(null);
+  const [blockReason, setBlockReason] = useState('');
   const [form, setForm] = useState({ ...emptyForm });
   const [busy, setBusy] = useState(false);
 
@@ -167,6 +172,7 @@ export default function AdminCustomersTable({
             <tr>
               <th>Customer</th>
               <th>Role</th>
+              <th>Status</th>
               <th className="gp-table__num">Orders</th>
               <th className="gp-table__num">Spent</th>
               <th className="gp-table__num">Balance</th>
@@ -196,6 +202,14 @@ export default function AdminCustomersTable({
                     {customer.role}
                   </span>
                 </td>
+                <td data-label="Status">
+                  <span
+                    className={`gp-pill ${customer.is_blocked ? 'gp-pill--danger' : 'gp-pill--success'}`}
+                  >
+                    <span className="gp-pill__dot" />
+                    {customer.is_blocked ? 'Blocked' : 'Active'}
+                  </span>
+                </td>
                 <td className="gp-table__num" data-label="Orders">{customer.orders}</td>
                 <td className="gp-table__num gp-table__strong" data-label="Spent">{money(customer.spent)}</td>
                 <td className="gp-table__num gp-table__strong" data-label="Balance" style={{ color: 'var(--gp-brand-ink)' }}>{money(customer.balance)}</td>
@@ -207,10 +221,10 @@ export default function AdminCustomersTable({
                     <button
                       type="button"
                       className="gp-btn gp-btn--sm gp-btn--primary"
-                      onClick={() => setWallet(customer)}
+                      onClick={() => setBalance(customer)}
                     >
                       <Icon name="card" size={13} />
-                      Wallet
+                      Balance
                     </button>
                     <Link
                       href={`/${locale}/admin/orders?q=${encodeURIComponent(customer.username ?? '')}`}
@@ -240,6 +254,16 @@ export default function AdminCustomersTable({
                         },
                         {
                           type: 'item',
+                          id: 'block',
+                          label: customer.is_blocked ? 'Unblock user' : 'Block user',
+                          icon: <Icon name="lock" size={14} />,
+                          onSelect: () => {
+                            setBlockReason('');
+                            setBlocking(customer);
+                          },
+                        },
+                        {
+                          type: 'item',
                           id: 'edit',
                           label: 'Edit customer',
                           icon: <Icon name="refresh" size={14} />,
@@ -263,6 +287,83 @@ export default function AdminCustomersTable({
           </tbody>
         </table>
       </div>
+
+      <BalanceModal
+        open={Boolean(balance)}
+        onClose={() => setBalance(null)}
+        customer={
+          balance
+            ? {
+                id: balance.id,
+                name: balance.full_name || balance.username || balance.id.slice(0, 8),
+                balance: Number(balance.balance),
+              }
+            : null
+        }
+      />
+
+      {/* Blocage : confirmation explicite, avec motif consigné au journal. */}
+      <Modal
+        open={Boolean(blocking)}
+        onClose={() => setBlocking(null)}
+        title={blocking?.is_blocked ? 'Unblock user' : 'Block user'}
+        description={blocking?.full_name || blocking?.username || undefined}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setBlocking(null)}>
+              Cancel
+            </Button>
+            <Button
+              loading={busy}
+              onClick={async () => {
+                if (!blocking) return;
+                setBusy(true);
+
+                const response = await fetch(`/api/admin/users/${blocking.id}/block`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ blocked: !blocking.is_blocked, reason: blockReason }),
+                });
+                const result = await response.json().catch(() => ({}));
+                setBusy(false);
+
+                if (!response.ok) {
+                  toast({ tone: 'error', title: 'Could not update', description: result.error });
+                  return;
+                }
+
+                toast({
+                  tone: 'success',
+                  title: blocking.is_blocked ? 'User unblocked' : 'User blocked',
+                });
+                setBlocking(null);
+                router.refresh();
+              }}
+            >
+              {blocking?.is_blocked ? 'Unblock' : 'Block'}
+            </Button>
+          </>
+        }
+      >
+        <div className="sv-stack" style={{ gap: 'var(--sv-space-3)' }}>
+          <p className="gp-card-head__desc" style={{ margin: 0 }}>
+            {blocking?.is_blocked
+              ? 'The account will be able to sign in and order again.'
+              : 'The account will be signed out and refused at login. Orders and top-ups are blocked by the database, not only by the interface.'}
+          </p>
+
+          {!blocking?.is_blocked && (
+            <Textarea
+              label="Reason"
+              optional
+              rows={2}
+              value={blockReason}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBlockReason(e.target.value)}
+              hint="Recorded in the audit trail."
+            />
+          )}
+        </div>
+      </Modal>
 
       <WalletModal
         open={Boolean(wallet)}

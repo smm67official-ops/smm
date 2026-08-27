@@ -337,6 +337,9 @@ const fr: Dictionary = {
 
   auth: {
     loginTitle: 'Connexion',
+    google: 'Continuer avec Google',
+    or: 'ou',
+    blocked: 'Votre compte a été bloqué. Veuillez contacter un administrateur.',
     loginSubtitle: 'Accédez à votre tableau de bord et à vos commandes.',
     registerTitle: 'Créer un compte',
     registerSubtitle: 'Cela prend moins d’une minute.',

@@ -1565,3 +1565,51 @@
   line-height: 1.45;
   color: var(--cx-muted);
 }
+
+/* ---------------------------------------------------------------------
+   Connexion Google
+
+   Le bouton reprend la forme de `.tm-button` (mêmes hauteur, rayon et
+   espacements) mais garde les couleurs imposées par Google : fond blanc,
+   texte sombre, logo d'origine. Les règles de marque l'exigent, et un
+   bouton aux couleurs du site serait moins reconnaissable.
+--------------------------------------------------------------------- */
+.tm-button--google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #fff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  font-weight: 600;
+}
+
+.tm-button--google:hover:not(:disabled) {
+  background: #f7f8f8;
+  border-color: #d2d5d9;
+  color: #202124;
+}
+
+.tm-button--google:disabled { opacity: .65; cursor: not-allowed; }
+
+.tm-button--google svg { flex: 0 0 auto; }
+
+/* Séparateur « ou » entre mot de passe et fournisseur externe. */
+.tm-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  color: #8a8f98;
+  font-size: 13px;
+}
+
+.tm-or::before,
+.tm-or::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: #e4e6ea;
+}

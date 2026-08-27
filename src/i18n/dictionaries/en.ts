@@ -335,6 +335,9 @@ const en = {
 
   auth: {
     loginTitle: 'Login',
+    google: 'Continue with Google',
+    or: 'or',
+    blocked: 'Your account has been blocked. Please contact an administrator.',
     loginSubtitle: 'Access your dashboard and your orders.',
     registerTitle: 'Create an account',
     registerSubtitle: 'It takes less than a minute.',

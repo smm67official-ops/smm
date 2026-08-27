@@ -337,6 +337,9 @@ const ar: Dictionary = {
 
   auth: {
     loginTitle: 'تسجيل الدخول',
+    google: 'المتابعة باستخدام Google',
+    or: 'أو',
+    blocked: 'تم حظر حسابك. يرجى الاتصال بالمسؤول.',
     loginSubtitle: 'ادخل إلى لوحة التحكم وطلباتك.',
     registerTitle: 'إنشاء حساب',
     registerSubtitle: 'لا يستغرق الأمر أكثر من دقيقة.',

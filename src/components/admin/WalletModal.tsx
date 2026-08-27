@@ -29,6 +29,8 @@ const TONE: Record<WalletTransactionType, 'success' | 'error' | 'info' | 'neutra
   REFUND: 'success',
   DEBIT: 'error',
   ADJUSTMENT: 'info',
+  BALANCE_ALLOCATION: 'success',
+  BALANCE_RECLAIM: 'error',
 };
 
 export default function WalletModal({

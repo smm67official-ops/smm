@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { audit, clientIp } from '@/lib/audit';
 import { DEFAULT_LOCALE, isLocale } from '@/i18n/config';
 
 /**
@@ -50,11 +52,58 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     console.error('[auth/callback]', error.message);
     return NextResponse.redirect(loginUrl(error.message));
+  }
+
+  const user = data.user;
+
+  if (user) {
+    /*
+      Le profil est normalement créé par le trigger `on_auth_user_created`.
+      Une première connexion Google apporte cependant un nom et un avatar
+      que l'inscription par mot de passe n'a pas : on complète les champs
+      restés vides, sans jamais écraser ce que le client a saisi lui-même.
+    */
+    const admin = createAdminClient();
+    const meta = (user.user_metadata ?? {}) as Record<string, string | undefined>;
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('id, full_name, avatar_url, is_blocked')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profile) {
+      const patch: { full_name?: string; avatar_url?: string } = {};
+      if (!profile.full_name && (meta.full_name || meta.name)) {
+        patch.full_name = (meta.full_name ?? meta.name)!;
+      }
+      if (!profile.avatar_url && (meta.avatar_url || meta.picture)) {
+        patch.avatar_url = (meta.avatar_url ?? meta.picture)!;
+      }
+      if (Object.keys(patch).length > 0) {
+        await admin.from('profiles').update(patch).eq('id', user.id);
+      }
+
+      // Un compte suspendu ne doit pas repartir avec une session valide.
+      if (profile.is_blocked) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(loginUrl('account_blocked'));
+      }
+    }
+
+    await audit({
+      action: user.app_metadata?.provider === 'google' ? 'GOOGLE_LOGIN' : 'LOGIN',
+      actorId: user.id,
+      targetId: user.id,
+      targetType: 'profile',
+      metadata: { provider: user.app_metadata?.provider ?? 'email' },
+      ip: clientIp(request),
+    });
   }
 
   return NextResponse.redirect(`${origin}${next}`);

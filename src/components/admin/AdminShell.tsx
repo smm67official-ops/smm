@@ -12,6 +12,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '/orders', label: 'Orders', icon: 'wallet' },
   { href: '/customers', label: 'Customers', icon: 'users' },
   { href: '/topups', label: 'Top-ups', icon: 'card' },
+  { href: '/balance', label: 'Balance', icon: 'wallet' },
   { href: '/services', label: 'Services', icon: 'bolt' },
   { href: '/parameters', label: 'Parameters', icon: 'shield' },
 ];

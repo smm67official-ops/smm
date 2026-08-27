@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import GoogleButton from '@/components/auth/GoogleButton';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
 
@@ -11,6 +12,13 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || `/${locale}/account`;
   const justRegistered = searchParams.get('registered') === '1';
+
+  /*
+    Erreurs renvoyées par /auth/callback. Traduites ici : le message brut
+    de Supabase n'est pas destiné au client, et « account_blocked » doit
+    dire quoi faire plutôt que constater.
+  */
+  const callbackError = searchParams.get('error');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,13 +31,32 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
     setError(null);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    /*
+      Compte suspendu : la session vient d'être ouverte, on la referme
+      aussitôt. La base reste la couche décisive — les politiques
+      d'insertion portent `not is_blocked()` — mais laisser entrer pour
+      tout refuser ensuite serait incompréhensible.
+    */
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_blocked')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    if (profile?.is_blocked) {
+      await supabase.auth.signOut();
+      setError(t.auth.blocked);
       setLoading(false);
       return;
     }
@@ -46,6 +73,9 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
 
       {justRegistered && <p className="tm-alert tm-alert-success">{t.auth.registeredNotice}</p>}
       {error && <p className="tm-alert tm-alert-error">{error}</p>}
+      {!error && callbackError === 'account_blocked' && (
+        <p className="tm-alert tm-alert-error">{t.auth.blocked}</p>
+      )}
 
       <div className="tm-form-inner">
         <div className="tm-form-field">
@@ -82,6 +112,13 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
             {loading && <span className="mx-spinner" aria-hidden="true" />}
             {loading ? t.auth.loggingIn : t.auth.login}
           </button>
+        </div>
+
+        <div className="tm-form-field">
+          <div className="tm-or" role="separator">
+            <span>{t.auth.or}</span>
+          </div>
+          <GoogleButton locale={locale} t={t} next={redirectTo} />
         </div>
       </div>
     </form>

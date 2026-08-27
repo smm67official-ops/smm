@@ -14,6 +14,10 @@ export type Profile = {
   avatar_url: string | null;
   balance: number;
   role: UserRole;
+  is_blocked: boolean;
+  blocked_at: string | null;
+  blocked_by: string | null;
+  block_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -25,7 +29,14 @@ export type Wishlist = {
   created_at: string;
 };
 
-export type WalletTransactionType = 'CREDIT' | 'DEBIT' | 'REFUND' | 'ADJUSTMENT';
+export type WalletTransactionType =
+  | 'CREDIT'
+  | 'DEBIT'
+  | 'REFUND'
+  | 'ADJUSTMENT'
+  /** Adossés au solde fournisseur (migration 009). */
+  | 'BALANCE_ALLOCATION'
+  | 'BALANCE_RECLAIM';
 
 export type WalletTransaction = {
   id: string;
@@ -37,6 +48,38 @@ export type WalletTransaction = {
   reason: string | null;
   order_id: string | null;
   actor_id: string | null;
+  created_at: string;
+  /** Disponible à l'allocation avant / après le mouvement (migration 009). */
+  provider_balance_before: number | null;
+  provider_balance_after: number | null;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  metadata: Record<string, unknown>;
+  reference: string | null;
+};
+
+/** Relevé du solde fournisseur, réussi ou en échec. */
+export type ProviderBalanceSnapshot = {
+  id: string;
+  provider: string;
+  balance: number | null;
+  currency: string | null;
+  status: 'LIVE' | 'ERROR';
+  error: string | null;
+  allocated: number | null;
+  checked_by: string | null;
+  created_at: string;
+};
+
+/** Journal des actions sensibles. Ne contient jamais de secret. */
+export type AuditLog = {
+  id: string;
+  action: string;
+  actor_id: string | null;
+  target_id: string | null;
+  target_type: string | null;
+  amount: number | null;
+  metadata: Record<string, unknown>;
+  ip: string | null;
   created_at: string;
 };
 
@@ -253,6 +296,8 @@ export type Database = {
       order_events: Row<OrderEvent, [FK<'order_id', 'orders'>]>;
       wallet_transactions: Row<WalletTransaction, [FK<'order_id', 'orders'>, FK<'user_id', 'profiles'>]>;
       topup_requests: Row<TopUpRequest, [FK<'user_id', 'profiles'>]>;
+      provider_balance_snapshots: Row<ProviderBalanceSnapshot>;
+      audit_logs: Row<AuditLog>;
       whatsapp_numbers: Row<WhatsAppNumber>;
       payment_methods: Row<PaymentMethod>;
       newsletter_subscribers: Row<{ id: string; email: string; created_at: string }>;
@@ -272,6 +317,32 @@ export type Database = {
     };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      total_allocated_balance: { Args: Record<string, never>; Returns: number };
+      allocate_balance: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_provider_balance: number | null;
+          p_actor_id: string;
+          p_reason?: string | null;
+          p_reference?: string | null;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: WalletTransaction;
+      };
+      reclaim_balance: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_provider_balance: number | null;
+          p_actor_id: string;
+          p_reason?: string | null;
+          p_reference?: string | null;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: WalletTransaction;
+      };
+      is_blocked: { Args: Record<string, never>; Returns: boolean };
       activate_whatsapp_number: {
         Args: { p_id: string };
         Returns: WhatsAppNumber;

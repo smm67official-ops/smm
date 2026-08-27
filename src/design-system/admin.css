@@ -321,3 +321,8 @@
 @media (min-width: 1600px) {
   .sv-admin__content { max-width: 1560px; width: 100%; margin-inline: auto; }
 }
+
+/* Liste clé/valeur des récapitulatifs de solde. */
+.gp-kv-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.gp-kv-list p { margin: 0; font-size: 13.5px; color: var(--sv-text-muted, #6b7280); }
+.gp-kv-list strong { color: var(--sv-text, #111827); }
