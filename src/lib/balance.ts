@@ -290,13 +290,39 @@ export async function verifyBalances(actorId?: string | null): Promise<BalanceRe
     mouvements en est l'histoire. Un écart signale une écriture directe
     en base, un mouvement perdu, ou un doublon.
   */
-  const { data: ledger } = await admin.from('wallet_transactions').select('amount, status');
-  const ledgerRows = (ledger ?? []) as Array<{ amount: number; status?: string }>;
+  /*
+    `status` n'existe qu'à partir de la migration 009. PostgREST rejette
+    la requête ENTIÈRE si on sélectionne une colonne absente : le résultat
+    revenait vide, le total tombait à zéro, et la vérification annonçait
+    un écart de grand livre imaginaire. Un faux « incohérent » sur un
+    tableau de bord financier coûte plus cher que pas de contrôle du tout.
+
+    On tente donc la forme complète, et l'on retombe sur la forme
+    minimale plutôt que de conclure sur un tableau vide.
+  */
+  let ledgerRows: Array<{ amount: number; status?: string }> = [];
+  let ledgerReadable = true;
+
+  const withStatus = await admin.from('wallet_transactions').select('amount, status');
+  if (withStatus.error) {
+    const fallback = await admin.from('wallet_transactions').select('amount');
+    ledgerReadable = !fallback.error;
+    ledgerRows = (fallback.data ?? []) as Array<{ amount: number }>;
+  } else {
+    ledgerRows = (withStatus.data ?? []) as Array<{ amount: number; status?: string }>;
+  }
+
   const ledgerTotal = ledgerRows
     .filter((t) => (t.status ?? 'SUCCESS') === 'SUCCESS')
     .reduce((sum, t) => sum + Number(t.amount ?? 0), 0);
 
-  if (Math.abs(ledgerTotal - clientTotal) > EPSILON) {
+  if (!ledgerReadable) {
+    issues.push({
+      code: 'LEDGER_UNREADABLE',
+      severity: 'warning',
+      detail: 'The ledger could not be read, so balances could not be reconciled against it.',
+    });
+  } else if (Math.abs(ledgerTotal - clientTotal) > EPSILON) {
     issues.push({
       code: 'LEDGER_MISMATCH',
       severity: 'critical',
