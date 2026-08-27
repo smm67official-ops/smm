@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GoogleButton from '@/components/auth/GoogleButton';
@@ -19,6 +19,33 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
     dire quoi faire plutôt que constater.
   */
   const callbackError = searchParams.get('error');
+
+  /*
+    Supabase renvoie ses échecs OAuth dans le FRAGMENT de l'URL
+    (`#error=...&error_description=...`), qui n'est jamais transmis au
+    serveur. `/auth/callback` ne voit donc ni `code` ni `error` et conclut
+    « missing_code » — exact du point de vue du serveur, mais trompeur :
+    la vraie cause est dans le fragment, lisible ici seulement.
+
+    Cas typique : « Unable to exchange external code », qui signale un
+    Client Secret erroné côté Supabase, et non un problème applicatif.
+  */
+  const [providerError, setProviderError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash);
+    const description = params.get('error_description');
+    if (!description) return;
+
+    setProviderError(decodeURIComponent(description.replace(/\+/g, ' ')));
+
+    // Le fragment est retiré de la barre d'adresse : sans cela, le
+    // message resurgirait à chaque rechargement, longtemps après coup.
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }, []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,6 +102,12 @@ export default function LoginForm({ locale, t }: { locale: Locale; t: Dictionary
       {error && <p className="tm-alert tm-alert-error">{error}</p>}
       {!error && callbackError === 'account_blocked' && (
         <p className="tm-alert tm-alert-error">{t.auth.blocked}</p>
+      )}
+      {/* Le motif réel prime sur le « missing_code » du serveur. */}
+      {!error && providerError && (
+        <p className="tm-alert tm-alert-error" role="alert">
+          {providerError}
+        </p>
       )}
 
       <div className="tm-form-inner">
