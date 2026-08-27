@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import GoogleButton from '@/components/auth/GoogleButton';
 import { authCallbackUrl } from '@/lib/site-url';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n';
@@ -132,6 +133,18 @@ export default function RegisterForm({ locale, t }: { locale: Locale; t: Diction
             {loading && <span className="mx-spinner" aria-hidden="true" />}
             {loading ? t.auth.registering : t.auth.register}
           </button>
+        </div>
+
+        {/*
+          Même bouton qu'à la connexion, et c'est voulu : chez Google il
+          n'y a pas d'inscription distincte. Un compte inconnu est créé,
+          un compte connu est reconnu — puis l'étape de finalisation
+          demande le numéro WhatsApp et les plateformes.
+
+          Il ne s'affiche que si le fournisseur est activé côté Supabase.
+        */}
+        <div className="tm-form-field">
+          <GoogleButton locale={locale} t={t} next={`/${locale}/account`} />
         </div>
       </div>
     </form>
