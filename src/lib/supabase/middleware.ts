@@ -2,6 +2,47 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { LOCALES } from '@/i18n/config';
 
+/**
+ * Délai au-delà duquel on cesse d'attendre Supabase.
+ *
+ * Le middleware s'exécute sur CHAQUE requête, y compris la page
+ * d'accueil et le catalogue, qui n'ont aucun besoin de session. Une
+ * lenteur de Supabase — projet en veille, incident réseau — bloquait
+ * donc tout le site derrière un appel d'authentification, jusqu'au
+ * `MIDDLEWARE_INVOCATION_TIMEOUT` de Vercel : une erreur 504 sur des
+ * pages entièrement publiques.
+ *
+ * Deux secondes suffisent très largement à une réponse normale (mesurée
+ * autour de 200 ms). Au-delà, on rend la main plutôt que de faire
+ * attendre le visiteur.
+ */
+const AUTH_TIMEOUT_MS = 2000;
+
+/**
+ * Attend une promesse, ou abandonne.
+ *
+ * `null` signifie « je ne sais pas », et non « pas de session » : les
+ * appelants distinguent les deux, car rediriger vers la connexion sur
+ * une simple lenteur déconnecterait des visiteurs parfaitement
+ * authentifiés.
+ */
+async function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), AUTH_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } catch {
+    // Panne réseau : même traitement qu'un dépassement de délai.
+    return null;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /** Retire le préfixe de langue : `/ar/account` → `/account`. */
 function stripLocale(pathname: string) {
   for (const locale of LOCALES) {
@@ -39,9 +80,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await withTimeout(supabase.auth.getUser());
+
+  /*
+    Supabase n'a pas répondu à temps. On laisse passer sans rien décider :
+    le middleware n'est qu'un raccourci d'expérience, la protection réelle
+    tient dans les gardes de page (`requireAdmin`, `getSessionUser`) et
+    surtout dans la RLS, qui ne dépend d'aucun délai. Bloquer ou rediriger
+    ici transformerait une lenteur en panne, ou en déconnexion.
+  */
+  if (session === null) return response;
+
+  const user = session.data.user;
 
   const { pathname } = request.nextUrl;
   const locale = pathname.split('/')[1];
@@ -64,13 +114,17 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
+    const lookup = await withTimeout(
+      Promise.resolve(
+        supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+      )
+    );
 
-    const role = profile?.role;
+    // Rôle indéterminé : la page d'administration refera le contrôle
+    // côté serveur, et la RLS bloquera toute lecture non autorisée.
+    if (lookup === null) return response;
+
+    const role = lookup.data?.role;
     if (role !== 'admin' && role !== 'support') {
       const url = request.nextUrl.clone();
       url.pathname = `/${locale}/admin/login`;
