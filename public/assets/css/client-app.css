@@ -1685,3 +1685,104 @@
   font-weight: 700;
   color: #4b5563;
 }
+
+/* ---------------------------------------------------------------------
+   Widget WhatsApp global
+
+   Position réglable depuis Admin -> Parameters. Les décalages tiennent
+   compte de la barre de navigation basse, présente sur mobile : sans
+   cela le bouton se poserait dessus et masquerait un onglet.
+--------------------------------------------------------------------- */
+.wa-widget {
+  position: fixed;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  bottom: 24px;
+}
+
+.wa-widget--bottom-right { right: 20px; align-items: flex-end; }
+.wa-widget--bottom-left  { left: 20px;  align-items: flex-start; }
+
+.wa-widget__button {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, .38);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.wa-widget__button:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 26px rgba(37, 211, 102, .5);
+}
+
+.wa-widget__button:focus-visible {
+  outline: 3px solid #128c7e;
+  outline-offset: 3px;
+}
+
+.wa-widget__bubble {
+  position: relative;
+  max-width: 260px;
+  padding: 16px 16px 14px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 34px rgba(15, 23, 42, .18);
+  border: 1px solid #e6e8ec;
+}
+
+.wa-widget__bubble p {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.wa-widget__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 9px;
+  background: #25d366;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13.5px;
+  text-decoration: none;
+}
+
+.wa-widget__cta:hover { background: #1eb85a; color: #fff; }
+
+.wa-widget__close {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 8px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: #9aa1ab;
+  cursor: pointer;
+}
+
+.wa-widget__close:hover { color: #4b5563; }
+
+/* Mobile : la barre de navigation basse occupe le bas de l'écran, et
+   `safe-area-inset` couvre la zone gestuelle des iPhone. */
+@media (max-width: 991px) {
+  .wa-widget { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .wa-widget--bottom-right { right: 14px; }
+  .wa-widget--bottom-left  { left: 14px; }
+  .wa-widget__button { width: 50px; height: 50px; }
+  .wa-widget__bubble { max-width: min(260px, calc(100vw - 40px)); }
+}

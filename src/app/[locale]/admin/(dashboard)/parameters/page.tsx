@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation';
 import { Icon } from '@/design-system';
 import PaymentMethods from '@/components/admin/PaymentMethods';
 import WhatsAppNumbers from '@/components/admin/WhatsAppNumbers';
+import GeneralSettings from '@/components/admin/GeneralSettings';
 import { requireAdmin } from '@/lib/auth';
-import { listPaymentMethods, listWhatsAppNumbers } from '@/lib/settings';
+import { getAppSettings, listPaymentMethods, listWhatsAppNumbers } from '@/lib/settings';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 /**
  * Paramètres du panel.
@@ -21,9 +23,17 @@ export default async function AdminParametersPage({ params }: { params: Params }
   const { locale } = await params;
   if (!auth.ok) redirect(`/${locale}/admin/login`);
 
-  const [numbers, methods] = await Promise.all([
+  const admin = createAdminClient();
+
+  const [numbers, methods, settings, total, customs] = await Promise.all([
     listWhatsAppNumbers(),
     listPaymentMethods(false),
+    getAppSettings(),
+    admin.from('services').select('id', { count: 'exact', head: true }),
+    admin
+      .from('services')
+      .select('id', { count: 'exact', head: true })
+      .eq('margin_mode', 'custom'),
   ]);
 
   const active = numbers.find((n) => n.is_active) ?? null;
@@ -77,13 +87,20 @@ export default async function AdminParametersPage({ params }: { params: Params }
               <Icon name="grid" size={19} />
             </span>
             <div className="gp-stat-card__body">
-              <p className="gp-stat-card__label">Methods configured</p>
-              <p className="gp-stat-card__value">{methods.length}</p>
+              <p className="gp-stat-card__label">Global margin</p>
+              <p className="gp-stat-card__value">{settings.global_service_margin}%</p>
             </div>
           </article>
         </div>
 
         <WhatsAppNumbers numbers={numbers} />
+
+        <GeneralSettings
+          settings={settings}
+          activeNumber={active?.number ?? null}
+          serviceCount={total.count ?? 0}
+          customMarginCount={customs.count ?? 0}
+        />
         <PaymentMethods methods={methods} />
       </div>
     </div>

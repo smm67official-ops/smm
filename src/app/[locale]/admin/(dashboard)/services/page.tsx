@@ -5,6 +5,7 @@ import TablePagination from '@/components/admin/TablePagination';
 import AdminServicesTable from '@/components/admin/AdminServicesTable';
 import AdminSyncButton from '@/components/admin/AdminSyncButton';
 import { requireAdmin } from '@/lib/auth';
+import { getGlobalMargin } from '@/lib/settings';
 import { listAdminServices } from '@/lib/admin-queries';
 import { PLATFORMS } from '@/lib/platforms';
 
@@ -24,6 +25,7 @@ export default async function AdminServicesPage({
   searchParams: SearchParams;
 }) {
   const auth = await requireAdmin();
+  const globalMargin = await getGlobalMargin();
   const { locale } = await params;
   if (!auth.ok) redirect(`/${locale}/admin/login`);
 
@@ -113,7 +115,8 @@ export default async function AdminServicesPage({
             </div>
           ) : (
             <>
-              <AdminServicesTable locale={locale} services={services} />
+              <AdminServicesTable
+            globalMargin={globalMargin} locale={locale} services={services} />
               <TablePagination basePath={basePath} page={page} perPage={perPage} total={total} />
             </>
           )}

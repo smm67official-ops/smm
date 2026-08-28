@@ -1,7 +1,7 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { BUSINESS_WHATSAPP, normalizeWhatsApp } from '@/lib/whatsapp';
-import type { PaymentMethod, WhatsAppNumber } from '@/lib/supabase/types';
+import type { AppSettings, PaymentMethod, WhatsAppNumber } from '@/lib/supabase/types';
 
 /**
  * Paramètres administrables : numéros WhatsApp et moyens de paiement.
@@ -160,4 +160,87 @@ export function buildTopUpMessage({
   lines.push('', wording.proof);
 
   return lines.join('\n');
+}
+
+
+// -------------------------------------------------------------------
+//  Réglages généraux
+// -------------------------------------------------------------------
+
+/**
+ * Valeurs de repli.
+ *
+ * Servent tant que la migration 011 n'est pas appliquée, et si la ligne
+ * unique venait à manquer. La marge reprend 20 %, celle qu'appliquait le
+ * code auparavant : en changer ferait bouger tous les prix au premier
+ * import.
+ */
+export const DEFAULT_SETTINGS: AppSettings = {
+  id: true,
+  global_service_margin: Number(process.env.SMM_MARKUP_PERCENT ?? 20),
+  whatsapp_enabled: true,
+  whatsapp_message: null,
+  whatsapp_greeting: null,
+  whatsapp_position: 'bottom-right',
+  updated_at: new Date().toISOString(),
+  updated_by: null,
+};
+
+/** Réglages courants. Ne lève jamais : une panne de lecture ne doit pas
+ *  faire disparaître le catalogue ni le widget. */
+export async function getAppSettings(): Promise<AppSettings> {
+  const admin = createAdminClient();
+
+  const { data, error } = await admin.from('app_settings').select('*').maybeSingle();
+
+  if (error && !isMissingTable(error.message)) {
+    console.error('[settings] lecture des réglages :', error.message);
+  }
+
+  return data ? ({ ...DEFAULT_SETTINGS, ...data } as AppSettings) : DEFAULT_SETTINGS;
+}
+
+/** Marge globale seule — le chemin le plus emprunté. */
+export async function getGlobalMargin(): Promise<number> {
+  return (await getAppSettings()).global_service_margin;
+}
+
+export type WidgetConfig = {
+  enabled: boolean;
+  number: string;
+  message: string;
+  greeting: string | null;
+  position: 'bottom-right' | 'bottom-left';
+};
+
+/**
+ * Configuration du widget WhatsApp, prête à l'emploi.
+ *
+ * Le numéro vient de `whatsapp_numbers` — sa seule source, avec sa règle
+ * « un seul actif ». Il n'est pas recopié dans les réglages : deux
+ * copies finiraient par diverger.
+ *
+ * `null` signifie « ne rien afficher » : widget désactivé, ou aucun
+ * numéro actif. Un bouton qui ouvrirait WhatsApp sans destinataire ne
+ * vaut pas mieux qu'un bouton absent.
+ */
+export async function getWhatsAppWidget(locale = 'fr'): Promise<WidgetConfig | null> {
+  const [settings, number] = await Promise.all([getAppSettings(), getActiveWhatsAppNumber()]);
+
+  if (!settings.whatsapp_enabled || !number) return null;
+
+  const fallback =
+    locale === 'ar'
+      ? 'مرحبا، أود الحصول على مزيد من المعلومات.'
+      : locale === 'en'
+        ? 'Hello, I would like more information.'
+        : "Bonjour, j'aimerais avoir plus d'informations.";
+
+  return {
+    enabled: true,
+    number,
+    message: settings.whatsapp_message?.trim() || fallback,
+    greeting: settings.whatsapp_greeting?.trim() || null,
+    position: settings.whatsapp_position,
+  };
 }

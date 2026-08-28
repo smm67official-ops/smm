@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Icon, Input, Modal, useToast } from '@/design-system';
+import { Button, Icon, Input, Modal, Select, useToast } from '@/design-system';
+import { MARGIN_MAX, MARGIN_MIN, effectiveMargin, sellingPrice } from '@/lib/pricing';
 import { platformOf } from '@/lib/platforms';
 import type { Service } from '@/lib/supabase/types';
 
@@ -11,9 +12,11 @@ const rate = (value: number) =>
   `$${Number(value ?? 0).toFixed(5).replace(/0+$/, '').replace(/\.$/, '')}`;
 
 export default function AdminServicesTable({
+  globalMargin,
   locale,
   services,
 }: {
+  globalMargin: number;
   locale: string;
   services: Service[];
 }) {
@@ -21,7 +24,14 @@ export default function AdminServicesTable({
   const { toast } = useToast();
 
   const [editing, setEditing] = useState<Service | null>(null);
-  const [form, setForm] = useState({ name: '', rate: 0, min: 0, max: 0 });
+  const [form, setForm] = useState({
+    name: '',
+    rate: 0,
+    min: 0,
+    max: 0,
+    margin_mode: 'global' as 'global' | 'custom',
+    custom_margin: '',
+  });
   const [busy, setBusy] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -31,6 +41,11 @@ export default function AdminServicesTable({
       rate: Number(service.rate),
       min: service.min,
       max: service.max,
+      margin_mode: service.margin_mode ?? 'global',
+      custom_margin:
+        service.custom_margin === null || service.custom_margin === undefined
+          ? ''
+          : String(service.custom_margin),
     });
     setEditing(service);
   };
@@ -57,7 +72,8 @@ export default function AdminServicesTable({
 
     const { ok, result } = await patch(editing.id, {
       name: form.name,
-      rate: Number(form.rate),
+      margin_mode: form.margin_mode,
+      custom_margin: form.margin_mode === 'custom' ? Number(form.custom_margin) : null,
       min: Number(form.min),
       max: Number(form.max),
     });
@@ -91,27 +107,6 @@ export default function AdminServicesTable({
     router.refresh();
   };
 
-  /** Rend le prix à nouveau calculé par la marge automatique. */
-  const unlockRate = async () => {
-    if (!editing) return;
-    setBusy(true);
-
-    const { ok, result } = await patch(editing.id, { unlockRate: true });
-    setBusy(false);
-
-    if (!ok) {
-      toast({ tone: 'error', title: 'Update failed', description: result.error });
-      return;
-    }
-
-    toast({
-      tone: 'success',
-      title: 'Price unlocked',
-      description: 'The next catalogue sync will recompute it from the margin.',
-    });
-    setEditing(null);
-    router.refresh();
-  };
 
   const toggleActive = async (service: Service) => {
     setTogglingId(service.id);
@@ -147,6 +142,8 @@ export default function AdminServicesTable({
               <th>Service</th>
               <th>Type</th>
               <th className="gp-table__num">Cost / 1000</th>
+              <th className="gp-table__num">Margin</th>
+              <th>Type</th>
               <th className="gp-table__num">Sell / 1000</th>
               <th className="gp-table__num">Margin</th>
               <th className="gp-table__num">Min</th>
@@ -172,6 +169,22 @@ export default function AdminServicesTable({
                   </td>
                   <td className="gp-table__muted" data-label="Type">{service.type}</td>
                   <td className="gp-table__num" data-label="Cost / 1000">{rate(service.provider_rate)}</td>
+
+                  {/* Marge appliquée, et d'où elle vient : sans le type,
+                      un 20 % global et un 20 % individuel sont
+                      indiscernables, et « appliquer à tous » réserverait
+                      une surprise. */}
+                  <td className="gp-table__num" data-label="Margin">
+                    {effectiveMargin(service, globalMargin).toFixed(2)}%
+                  </td>
+                  <td data-label="Type">
+                    <span
+                      className={`gp-pill ${service.margin_mode === 'custom' ? 'gp-pill--brand' : 'gp-pill--neutral'}`}
+                    >
+                      <span className="gp-pill__dot" />
+                      {service.margin_mode === 'custom' ? 'Custom' : 'Global'}
+                    </span>
+                  </td>
                   <td className="gp-table__num gp-table__strong" data-label="Sell / 1000">
                     {rate(service.rate)}
                     {service.rate_locked && (
@@ -273,26 +286,60 @@ export default function AdminServicesTable({
             readOnly
             hint="Overwritten at each catalogue sync."
           />
-          <Input
-            label="Selling price / 1000"
-            type="number"
-            step="0.00001"
-            min={0}
-            value={form.rate}
-            onChange={(e) => setForm((f) => ({ ...f, rate: Number(e.target.value) }))}
-            hint={
-              editing?.rate_locked
-                ? 'Locked: this price survives every catalogue sync.'
-                : `Currently automatic (provider cost + margin). Saving locks it.`
+          {/*
+            Le prix se règle par la MARGE, pas en valeur absolue : une
+            marge résiste à un changement de coût fournisseur, là où un
+            prix figé devient une marge négative dès que le coût monte.
+          */}
+          <Select
+            label="Margin mode"
+            value={form.margin_mode}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                margin_mode: e.target.value as 'global' | 'custom',
+                // Pré-remplit avec le global : repartir de zéro ferait
+                // chuter le prix si l'on enregistre sans y penser.
+                custom_margin: f.custom_margin || String(globalMargin),
+              }))
             }
+            options={[
+              { value: 'global', label: `Use global margin (${globalMargin}%)` },
+              { value: 'custom', label: 'Custom margin' },
+            ]}
           />
 
-          {editing?.rate_locked && (
-            <button type="button" className="gp-btn gp-btn--sm" onClick={unlockRate} disabled={busy}>
-              <Icon name="refresh" size={13} />
-              Back to automatic margin
-            </button>
+          {form.margin_mode === 'custom' && (
+            <Input
+              label="Custom margin (%)"
+              type="number"
+              step="0.01"
+              min={MARGIN_MIN}
+              max={MARGIN_MAX}
+              value={form.custom_margin}
+              onChange={(e) => setForm((f) => ({ ...f, custom_margin: e.target.value }))}
+            />
           )}
+
+          {/* Prix calculé, mis à jour à la frappe : l'effet de la marge
+              se voit avant d'enregistrer. */}
+          <Input
+            label="Calculated selling price / 1000"
+            value={
+              editing
+                ? rate(
+                    sellingPrice(
+                      Number(editing.provider_rate),
+                      form.margin_mode === 'custom'
+                        ? Number(form.custom_margin || 0)
+                        : globalMargin
+                    )
+                  )
+                : ''
+            }
+            readOnly
+            hint="Provider cost x (1 + margin). Stored when you save."
+          />
           <Input
             label="Minimum quantity"
             type="number"

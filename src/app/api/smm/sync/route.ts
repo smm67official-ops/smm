@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { getGlobalMargin } from '@/lib/settings';
+import { sellingPrice } from '@/lib/pricing';
 import { SmmGen, SmmGenError } from '@/lib/smmgen';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectPlatform, slugify } from '@/lib/platforms';
@@ -7,10 +9,15 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /** Marge appliquée au prix fournisseur, en pourcentage. */
-const markupPercent = () => Number(process.env.SMM_MARKUP_PERCENT ?? 20);
+/*
+  La marge vient des réglages, plus d'une variable d'environnement.
 
-const sellPrice = (providerRate: number) =>
-  Math.round(providerRate * (1 + markupPercent() / 100) * 100_000) / 100_000;
+  `SMM_MARKUP_PERCENT` était figée au build : la changer imposait un
+  redéploiement, et le back-office n'avait aucune prise dessus. Elle ne
+  sert plus que de valeur initiale, dans `DEFAULT_SETTINGS`.
+*/
+
+
 
 /**
  * Importe le catalogue SMMGen dans Supabase.
@@ -71,17 +78,25 @@ export async function POST(request: NextRequest) {
   const categoryIdByName = new Map((categories ?? []).map((c) => [c.name, c.id]));
 
   /**
-   * Prix fixés manuellement : la synchronisation met à jour le coût
-   * fournisseur mais ne touche pas au prix de vente de ces services.
+   * Marges individuelles.
+   *
+   * Un service en marge « custom » garde la sienne à travers l'import ;
+   * seul son coût fournisseur est rafraîchi, et son prix est recalculé
+   * à partir de cette marge. Un prix figé en valeur absolue serait
+   * devenu une marge négative dès que le fournisseur augmente.
    */
-  const { data: lockedRows } = await supabase
-    .from('services')
-    .select('provider_service_id, rate')
-    .eq('provider', 'smmgen')
-    .eq('rate_locked', true);
+  const globalMargin = await getGlobalMargin();
 
-  const lockedRate = new Map(
-    (lockedRows ?? []).map((row) => [Number(row.provider_service_id), Number(row.rate)])
+  const { data: marginRows } = await supabase
+    .from('services')
+    .select('provider_service_id, custom_margin')
+    .eq('provider', 'smmgen')
+    .eq('margin_mode', 'custom');
+
+  const customMargin = new Map(
+    (marginRows ?? [])
+      .filter((row) => row.custom_margin !== null)
+      .map((row) => [Number(row.provider_service_id), Number(row.custom_margin)])
   );
 
   /**
@@ -114,7 +129,8 @@ export async function POST(request: NextRequest) {
   const serviceRows = services.map((s) => {
     const providerRate = Number(s.rate);
     const providerServiceId = Number(s.service);
-    const locked = lockedRate.get(providerServiceId);
+    const custom = customMargin.get(providerServiceId);
+    const margin = custom ?? globalMargin;
     const renamed = lockedName.get(providerServiceId);
 
     return {
@@ -127,8 +143,9 @@ export async function POST(request: NextRequest) {
       category_id: categoryIdByName.get(s.category) ?? null,
       platform: detectPlatform(s.category ?? '') ?? detectPlatform(s.name ?? ''),
       provider_rate: providerRate,
-      rate: locked ?? sellPrice(providerRate),
-      rate_locked: locked !== undefined,
+      rate: sellingPrice(providerRate, margin),
+      margin_mode: custom !== undefined ? 'custom' : 'global',
+      custom_margin: custom ?? null,
       min: Number(s.min) || 1,
       max: Number(s.max) || 1_000_000,
       refill: Boolean(s.refill),
@@ -166,7 +183,7 @@ export async function POST(request: NextRequest) {
     services: serviceRows.length,
     skipped: skippedCount,
     renameSupported: supportsRename,
-    priceLocked: lockedRate.size,
-    markupPercent: markupPercent(),
+    customMargins: customMargin.size,
+    globalMargin,
   });
 }

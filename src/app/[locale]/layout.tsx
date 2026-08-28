@@ -17,7 +17,8 @@ import RouteProgress from '@/components/motion/RouteProgress';
 import { CxToastProvider } from '@/components/motion/ToastProvider';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 import StructuredData from '@/components/seo/StructuredData';
-import { getActiveWhatsAppNumber } from '@/lib/settings';
+import WhatsAppWidget from '@/components/layout/WhatsAppWidget';
+import { getActiveWhatsAppNumber, getWhatsAppWidget } from '@/lib/settings';
 
 type Params = Promise<{ locale: string }>;
 
@@ -119,6 +120,13 @@ export default async function LocaleLayout({
   // Numéro de contact publié dans les données structurées.
   const businessWhatsapp = await getActiveWhatsAppNumber();
 
+  /*
+    Widget global : monté ici, donc présent sur toutes les pages sans
+    qu'aucune n'ait à le déclarer. `null` quand il est désactivé ou
+    qu'aucun numéro n'est actif — rien ne s'affiche alors.
+  */
+  const widget = await getWhatsAppWidget(locale);
+
   // Origine Supabase, pour préétablir la connexion (voir <head>).
   const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
     ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
@@ -215,6 +223,16 @@ export default async function LocaleLayout({
             </div>
             <BottomNav locale={locale as Locale} t={t} signedIn={Boolean(email)} />
             <ScrollToTop />
+
+            {/* Un seul point de montage pour tout le site. */}
+            {widget && (
+              <WhatsAppWidget
+                number={widget.number}
+                message={widget.message}
+                greeting={widget.greeting}
+                position={widget.position}
+              />
+            )}
           </CxToastProvider>
         </BasketProvider>
       </body>

@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth';
 import type { Service } from '@/lib/supabase/types';
+import { MARGIN_MESSAGE, sellingPrice, validateMargin } from '@/lib/pricing';
+import { getGlobalMargin } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +30,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   let body: {
     name?: string;
+    margin_mode?: 'global' | 'custom';
+    custom_margin?: unknown;
     rate?: number;
     is_active?: boolean;
     min?: number;
@@ -54,6 +58,57 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     patch.name = name;
     // Un nom saisi à la main est protégé de la prochaine synchronisation.
     patch.name_locked = true;
+  }
+
+  /*
+    Marge du service.
+
+    C'est le chemin normal pour fixer un prix : la marge résiste à un
+    changement de coût fournisseur, là où un prix absolu deviendrait une
+    marge négative dès que le fournisseur augmente.
+
+    Le prix stocké est recalculé dans la foulée — `rate` reste la valeur
+    lue par la boutique, le panier et les commandes.
+  */
+  if (body.margin_mode !== undefined) {
+    if (body.margin_mode !== 'global' && body.margin_mode !== 'custom') {
+      return NextResponse.json(
+        { error: 'margin_mode must be "global" or "custom"' },
+        { status: 400 }
+      );
+    }
+
+    const { data: service } = await createAdminClient()
+      .from('services')
+      .select('provider_rate')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!service) return NextResponse.json({ error: 'Service not found' }, { status: 404 });
+
+    if (body.margin_mode === 'custom') {
+      const margin = validateMargin(body.custom_margin);
+      if (!margin.ok) {
+        return NextResponse.json(
+          { error: MARGIN_MESSAGE[margin.error], code: margin.error },
+          { status: 400 }
+        );
+      }
+      patch.margin_mode = 'custom';
+      patch.custom_margin = margin.margin;
+      patch.rate = sellingPrice(Number(service.provider_rate), margin.margin);
+    } else {
+      // Retour au global : l'exception disparaît vraiment, sinon elle
+      // resterait en base et ressortirait au prochain import.
+      const globalMargin = await getGlobalMargin();
+      patch.margin_mode = 'global';
+      patch.custom_margin = null;
+      patch.rate = sellingPrice(Number(service.provider_rate), globalMargin);
+    }
+
+    // La notion de prix figé n'a plus lieu d'être : c'est la marge qui
+    // décide désormais.
+    patch.rate_locked = false;
   }
 
   if (body.rate !== undefined) {
@@ -115,6 +170,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (error) {
     // Migration 008 non appliquée : le diagnostic doit être lisible dans
     // l'interface, pas seulement dans les journaux du serveur.
+    if (/column .*(margin_mode|custom_margin).* does not exist/i.test(error.message)) {
+      return NextResponse.json(
+        { error: 'Margins need migration 011 — run it in the Supabase SQL editor.' },
+        { status: 409 }
+      );
+    }
     if (/column .*(name_locked|provider_name).* does not exist|schema cache/i.test(error.message)) {
       return NextResponse.json(
         { error: 'Renaming needs migration 008 — run it in the Supabase SQL editor.' },

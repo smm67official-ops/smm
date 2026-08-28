@@ -127,6 +127,18 @@ export type AdminTopUpRequest = {
   balance: number;
 };
 
+/** Réglages généraux du panel — une seule ligne. */
+export type AppSettings = {
+  id: boolean;
+  global_service_margin: number;
+  whatsapp_enabled: boolean;
+  whatsapp_message: string | null;
+  whatsapp_greeting: string | null;
+  whatsapp_position: 'bottom-right' | 'bottom-left';
+  updated_at: string;
+  updated_by: string | null;
+};
+
 /** Numéro WhatsApp professionnel. Un seul porte `is_active` (contrainte en base). */
 export type WhatsAppNumber = {
   id: string;
@@ -204,6 +216,9 @@ export type Service = {
   description: string | null;
   is_active: boolean;
   rate_locked: boolean;
+  /** Marge individuelle (migration 011). Null = suit la marge globale. */
+  margin_mode: 'global' | 'custom';
+  custom_margin: number | null;
   /** Libellé d'origine chez le fournisseur, toujours synchronisé. */
   provider_name: string | null;
   /** true = nom réécrit par un administrateur, protégé de la synchronisation. */
@@ -302,6 +317,7 @@ export type Database = {
       topup_requests: Row<TopUpRequest, [FK<'user_id', 'profiles'>]>;
       provider_balance_snapshots: Row<ProviderBalanceSnapshot>;
       audit_logs: Row<AuditLog>;
+      app_settings: Row<AppSettings>;
       whatsapp_numbers: Row<WhatsAppNumber>;
       payment_methods: Row<PaymentMethod>;
       newsletter_subscribers: Row<{ id: string; email: string; created_at: string }>;
@@ -347,6 +363,10 @@ export type Database = {
         Returns: WalletTransaction;
       };
       is_blocked: { Args: Record<string, never>; Returns: boolean };
+      apply_global_margin: {
+        Args: { p_margin: number; p_reset?: boolean; p_actor?: string | null };
+        Returns: { updated_services: number; reset_customs: number }[];
+      };
       activate_whatsapp_number: {
         Args: { p_id: string };
         Returns: WhatsAppNumber;
