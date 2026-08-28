@@ -10,6 +10,21 @@ export const BRAND = {
   name: 'SMM67',
   tagline: 'Social Media Marketing',
 
+  /**
+   * Domaine public, source unique des URL canoniques.
+   *
+   * Volontairement une constante et non `NEXT_PUBLIC_SITE_URL` : cette
+   * variable a déjà pointé vers un hébergement abandonné, et une
+   * canonique erronée est pire que pas de canonique — elle désigne aux
+   * moteurs une adresse morte comme étant la version de référence.
+   *
+   * Un changement de domaine se fait ici, et nulle part ailleurs.
+   */
+  url: 'https://smm67.com',
+
+  /** Compte de contact affiché dans les données structurées. */
+  email: 'smm67official@gmail.com',
+
   /** Logo complet (marque + nom), fond transparent. */
   logo: '/logo/logo96.png',
 

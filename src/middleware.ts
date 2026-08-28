@@ -36,9 +36,20 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Tout sauf les fichiers statiques, les assets du thème et les routes API/auth.
-    // `design-system` est la page de référence du design system : elle a son
-    // propre layout et ne doit pas être préfixée par une langue.
-    '/((?!api|auth|design-system|_next/static|_next/image|assets|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js|map|woff|woff2|ttf|eot)$).*)',
+    /*
+      Tout sauf les fichiers statiques, les assets du thème et les routes
+      API/auth. `design-system` est la page de référence du design
+      system : elle a son propre layout et ne doit pas être préfixée par
+      une langue.
+
+      `robots.txt` et `sitemap.xml` DOIVENT figurer ici. Sans eux, le
+      middleware les prenait pour des pages et les redirigeait vers
+      `/ar/robots.txt` — une adresse qui n'existe pas. Les deux fichiers
+      que les moteurs consultent en premier étaient donc introuvables.
+
+      Les extensions `.txt` et `.xml` sont ajoutées pour la même raison :
+      un fichier servi à la racine doit le rester.
+    */
+    '/((?!api|auth|design-system|robots\\.txt|sitemap\\.xml|_next/static|_next/image|assets|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js|map|txt|xml|json|webmanifest|woff|woff2|ttf|eot)$).*)',
   ],
 };

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
+import { META_DESCRIPTION_MAX, truncate } from '@/lib/seo';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Breadcrumb from '@/components/ui/Breadcrumb';
@@ -9,14 +11,65 @@ import { getRelatedServices, getServiceById } from '@/lib/queries';
 import { getDictionary } from '@/i18n';
 import { platformOf } from '@/lib/platforms';
 import { rate as fmtRate } from '@/lib/format';
-import type { Locale } from '@/i18n/config';
+import { LOCALES, type Locale } from '@/i18n/config';
 
 type Params = Promise<{ locale: string; id: string }>;
 
+/**
+ * Métadonnées d'une fiche service.
+ *
+ * Ce sont ces pages qui se positionnent : elles répondent à des requêtes
+ * précises (« acheter followers instagram »), là où l'accueil vise des
+ * termes très disputés. Elles méritent donc une description propre plutôt
+ * qu'un titre seul.
+ */
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { id } = await params;
+  const { locale, id } = await params;
   const service = await getServiceById(id);
-  return { title: service?.name ?? 'Service' };
+
+  if (!service) return { title: 'Service' };
+
+  const price = `$${Number(service.rate).toFixed(4)} / 1000`;
+  const platform = service.platform
+    ? service.platform.charAt(0).toUpperCase() + service.platform.slice(1)
+    : null;
+
+  const description =
+    service.description?.trim() ||
+    [
+      platform ? `${platform} — ${service.name}` : service.name,
+      `From ${price}.`,
+      `Minimum ${service.min.toLocaleString('en-US')}, maximum ${service.max.toLocaleString('en-US')}.`,
+      service.refill ? 'Refill included.' : null,
+      'Fast delivery, no password required.',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+  const canonical = `/${locale}/services/${id}`;
+
+  return {
+    title: service.name,
+    // Une méta-description au-delà de ~160 caractères est coupée dans les
+    // résultats : mieux vaut la couper nous-mêmes, au mot près.
+    description: truncate(description, META_DESCRIPTION_MAX),
+    alternates: {
+      canonical,
+      languages: Object.fromEntries(LOCALES.map((l) => [l, `/${l}/services/${id}`])),
+    },
+    openGraph: {
+      type: 'website',
+      title: service.name,
+      description: truncate(description, META_DESCRIPTION_MAX),
+      url: canonical,
+      siteName: BRAND.name,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: service.name,
+      description: truncate(description, META_DESCRIPTION_MAX),
+    },
+  };
 }
 
 export default async function ServiceDetailsPage({ params }: { params: Params }) {
