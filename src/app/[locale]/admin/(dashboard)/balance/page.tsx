@@ -7,7 +7,7 @@ import { listAuditLogs } from '@/lib/audit';
 
 /**
  * Rapprochement fournisseur / plateforme.
- *
+ *  
  * `force-dynamic` : un rapport de cohérence mis en cache dirait
  * « cohérent » longtemps après que ce ne soit plus vrai.
  */

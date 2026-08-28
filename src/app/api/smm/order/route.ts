@@ -3,7 +3,7 @@ import { SmmGen, SmmGenError, priceFor, validateOrder } from '@/lib/smmgen';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { classifyProviderError, PROVIDER_ERROR_MESSAGE } from '@/lib/orders';
-import { walletApply } from '@/lib/wallet';
+import { getBalance, walletApply } from '@/lib/wallet';
 import { isValidWhatsApp, normalizeWhatsApp } from '@/lib/whatsapp';
 import type { Service } from '@/lib/supabase/types';
 
@@ -220,6 +220,17 @@ export async function POST(request: NextRequest) {
   let failedLines = 0;
   let lastError: string | null = null;
 
+  /*
+    Montant des lignes que le fournisseur a refusées.
+
+    Le portefeuille est débité AVANT l'envoi — c'est ce qui empêche la
+    double dépense. Mais une ligne refusée ne sera jamais livrée : garder
+    l'argent reviendrait à facturer un service qui n'existera pas. On
+    cumule donc ici de quoi rembourser exactement ce qui a échoué, ni
+    plus ni moins.
+  */
+  let failedCharge = 0;
+
   const itemRows = [];
   for (const line of lines) {
     let providerOrderId: number | null = null;
@@ -238,6 +249,7 @@ export async function POST(request: NextRequest) {
         lastError = providerError;
         status = 'failed';
         failedLines += 1;
+        failedCharge += Number(line.charge);
       }
     }
 
@@ -271,6 +283,38 @@ export async function POST(request: NextRequest) {
     return fail(itemsError.message, 500, { orderId: order.id, refunded: true });
   }
 
+  /*
+    Remboursement des lignes refusées.
+
+    Sans cela, un fournisseur à court de fonds — ou une clé invalide —
+    encaissait le client pour rien : la commande passait en « failed » et
+    l'argent restait débité. Le cas se produit dès la première commande
+    si le solde SMMGen est à zéro.
+
+    Le remboursement suit le grand livre comme tout mouvement : il est
+    tracé, et le solde reste reconstituable.
+  */
+  let refunded = 0;
+
+  if (failedCharge > 0) {
+    const refund = await walletApply({
+      userId: user.id,
+      type: 'REFUND',
+      amount: Math.round(failedCharge * 100000) / 100000,
+      reason:
+        failedLines === lines.length
+          ? `Order ${order.id.slice(0, 8)} rejected by provider`
+          : `Order ${order.id.slice(0, 8)} — ${failedLines}/${lines.length} line(s) rejected`,
+      orderId: order.id,
+      actorId: user.id,
+    });
+
+    // Un remboursement en échec ne doit pas masquer la commande : on le
+    // signale pour qu'un administrateur reprenne la main.
+    if (refund.ok) refunded = Number(refund.transaction.amount);
+    else console.error('[smm/order] remboursement impossible', order.id, refund.message);
+  }
+
   // 6. Statut global de la commande.
   const orderStatus =
     !provider ? 'pending' : failedLines === lines.length ? 'failed' : submitted > 0 ? 'processing' : 'pending';
@@ -290,7 +334,10 @@ export async function POST(request: NextRequest) {
     to_status: orderStatus,
     source: 'system',
     actor_id: user.id,
-    note: provider ? `Submitted ${submitted}/${lines.length} line(s) to provider` : 'Provider submission disabled',
+    note: provider
+      ? `Submitted ${submitted}/${lines.length} line(s) to provider` +
+        (refunded > 0 ? ` — refunded $${refunded.toFixed(4)}` : '')
+      : 'Provider submission disabled',
   });
 
   return NextResponse.json({
@@ -300,6 +347,9 @@ export async function POST(request: NextRequest) {
     status: orderStatus,
     submitted: autoSubmit,
     providerError: lastError,
-    balance: debit.transaction.balance_after,
+    refunded,
+    // Solde après remboursement éventuel, pas celui d'avant : l'écran
+    // afficherait sinon un montant déjà faux.
+    balance: refunded > 0 ? await getBalance(user.id) : debit.transaction.balance_after,
   });
 }
