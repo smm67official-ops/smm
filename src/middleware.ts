@@ -47,9 +47,12 @@ export const config = {
       `/ar/robots.txt` — une adresse qui n'existe pas. Les deux fichiers
       que les moteurs consultent en premier étaient donc introuvables.
 
-      Les extensions `.txt` et `.xml` sont ajoutées pour la même raison :
-      un fichier servi à la racine doit le rester.
+      Les extensions `.txt`, `.xml` et `.html` sont ajoutées pour la même
+      raison : un fichier servi à la racine doit le rester. `.html` couvre
+      notamment le fichier de validation de Google Search Console, que le
+      robot lit à l'adresse exacte qu'il a fournie — préfixée d'une
+      langue, elle ne répond plus et la propriété reste non validée.
     */
-    '/((?!api|auth|design-system|robots\\.txt|sitemap\\.xml|_next/static|_next/image|assets|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js|map|txt|xml|json|webmanifest|woff|woff2|ttf|eot)$).*)',
+    '/((?!api|auth|design-system|robots\\.txt|sitemap\\.xml|_next/static|_next/image|assets|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js|map|txt|xml|html|json|webmanifest|woff|woff2|ttf|eot)$).*)',
   ],
 };
