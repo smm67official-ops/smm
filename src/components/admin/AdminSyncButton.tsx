@@ -23,7 +23,20 @@ export default function AdminSyncButton({
     setBusy(false);
 
     if (!response.ok) {
-      toast({ tone: 'error', title: 'Provider unavailable', description: result.error });
+      /*
+        Le titre nommait toujours « Provider unavailable », quelle que
+        soit la cause. Une contrainte violée dans NOTRE base s'affichait
+        donc comme une panne de SMMGen, et l'on partait chercher le
+        problème du mauvais côté.
+
+        Le titre dit maintenant ce qui a échoué ; le message renvoyé par
+        la route dit pourquoi.
+      */
+      toast({
+        tone: 'error',
+        title: target === 'sync' ? 'Catalogue sync failed' : 'Status refresh failed',
+        description: result.error ?? 'Unexpected error.',
+      });
       return;
     }
 
@@ -32,7 +45,9 @@ export default function AdminSyncButton({
       title: target === 'sync' ? 'Catalogue synced' : 'Statuses refreshed',
       description:
         target === 'sync'
-          ? `${result.services} services, ${result.categories} categories${result.skipped ? `, ${result.skipped} skipped` : ''}`
+          ? `${result.services} services, ${result.categories} categories` +
+            `${result.newCategories ? `, ${result.newCategories} new` : ''}` +
+            `${result.skipped ? `, ${result.skipped} skipped` : ''}`
           : `${result.updated}/${result.checked} order line(s) updated`,
     });
     router.refresh();

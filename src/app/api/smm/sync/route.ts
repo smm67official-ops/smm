@@ -57,25 +57,149 @@ export async function POST(request: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // 1. Catégories — dédoublonnées sur le libellé fournisseur.
+  /**
+   * Lit une table entière, par pages.
+   *
+   * PostgREST plafonne une réponse à 1000 lignes par défaut, SANS le
+   * signaler : la requête réussit, il en manque simplement. Le catalogue
+   * compte plus de 1000 catégories — les dernières passaient donc pour
+   * inconnues, et l'import tentait de les réinsérer :
+   *
+   *     duplicate key value violates unique constraint
+   *     "service_categories_name_key"
+   *
+   * Le même piège faussait la table de correspondance nom -> identifiant,
+   * laissant les services de ces catégories sans rattachement.
+   */
+  const fetchAll = async <T,>(table: 'service_categories', columns: string): Promise<T[]> => {
+    const PAGE = 1000;
+    const rows: T[] = [];
+
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from(table)
+        .select(columns)
+        .range(from, from + PAGE - 1);
+
+      if (error) throw new Error(error.message);
+
+      const page = (data ?? []) as T[];
+      rows.push(...page);
+
+      if (page.length < PAGE) return rows;
+    }
+  };
+
+  /*
+    1. Catégories — dédoublonnées sur le libellé fournisseur.
+
+    LE SLUG EST POSÉ UNE FOIS, À LA CRÉATION, ET N'EST JAMAIS RÉÉCRIT.
+
+    Il valait auparavant `slugify(nom)-index`, l'index étant la position
+    dans la réponse du fournisseur. Cette position bouge d'une
+    synchronisation à l'autre — une catégorie ajoutée décale toutes les
+    suivantes — et une catégorie renommée arrivait alors en réclamant un
+    slug qu'une autre ligne détenait déjà :
+
+        duplicate key value violates unique constraint
+        "service_categories_slug_key"
+
+    L'import s'arrêtait là, catalogue non mis à jour.
+
+    Un slug figé règle le fond du problème, et c'est de toute façon la
+    bonne pratique : un slug se retrouve dans les URL, le réécrire à
+    chaque import casserait les liens et le référencement.
+  */
   const categoryNames = [...new Set(services.map((s) => s.category).filter(Boolean))];
-  const categoryRows = categoryNames.map((name, index) => ({
-    name,
-    slug: `${slugify(name)}-${index}`,
-    platform: detectPlatform(name),
-    position: index,
-  }));
 
-  const { error: categoryError } = await supabase
-    .from('service_categories')
-    .upsert(categoryRows, { onConflict: 'name' });
+  const existingCategories = await fetchAll<{ name: string; slug: string }>(
+    'service_categories',
+    'name, slug'
+  );
 
-  if (categoryError) {
-    return NextResponse.json({ error: categoryError.message }, { status: 500 });
+  const knownByName = new Map(existingCategories.map((c) => [c.name, c.slug]));
+  const usedSlugs = new Set(existingCategories.map((c) => c.slug));
+
+  /**
+   * Slug libre pour un nouveau libellé.
+   *
+   * Deux libellés distincts peuvent se réduire au même slug — accents,
+   * ponctuation, troncature à 120 caractères. On suffixe alors, en
+   * vérifiant contre ce qui existe EN BASE et contre ce que l'on vient
+   * d'attribuer dans la même passe.
+   */
+  const freeSlug = (name: string) => {
+    const base = slugify(name);
+    if (!usedSlugs.has(base)) {
+      usedSlugs.add(base);
+      return base;
+    }
+
+    for (let n = 2; ; n += 1) {
+      const candidate = `${base}-${n}`;
+      if (!usedSlugs.has(candidate)) {
+        usedSlugs.add(candidate);
+        return candidate;
+      }
+    }
+  };
+
+  const newCategories = categoryNames
+    .filter((name) => !knownByName.has(name))
+    .map((name) => ({
+      name,
+      slug: freeSlug(name),
+      platform: detectPlatform(name),
+      position: categoryNames.indexOf(name),
+    }));
+
+  if (newCategories.length > 0) {
+    const { error: insertError } = await supabase
+      .from('service_categories')
+      .insert(newCategories);
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
   }
 
-  const { data: categories } = await supabase.from('service_categories').select('id, name');
-  const categoryIdByName = new Map((categories ?? []).map((c) => [c.name, c.id]));
+  /*
+    Les catégories déjà connues voient leur position et leur plateforme
+    rafraîchies — jamais leur nom ni leur slug, qui les identifient.
+
+    En UNE écriture, pas une par catégorie : la boucle séquentielle
+    demandait plus de mille allers-retours et portait l'import à près de
+    deux minutes, au-delà du délai d'exécution d'une fonction chez
+    l'hébergeur. L'`upsert` reprend le slug DÉJÀ EN BASE, donc la colonne
+    unique ne bouge pas et aucune collision n'est possible.
+  */
+  const refreshed = categoryNames
+    .map((name, index) => ({ name, index }))
+    .filter(({ name }) => knownByName.has(name))
+    .map(({ name, index }) => ({
+      name,
+      slug: knownByName.get(name)!,
+      platform: detectPlatform(name),
+      position: index,
+    }));
+
+  for (let i = 0; i < refreshed.length; i += 500) {
+    const { error: refreshError } = await supabase
+      .from('service_categories')
+      .upsert(refreshed.slice(i, i + 500), { onConflict: 'name' });
+
+    if (refreshError) {
+      return NextResponse.json({ error: refreshError.message }, { status: 500 });
+    }
+  }
+
+  // Même pagination : sans elle, les services des catégories au-delà de
+  // la millième restaient sans `category_id`.
+  const categories = await fetchAll<{ id: string; name: string }>(
+    'service_categories',
+    'id, name'
+  );
+  const categoryIdByName = new Map(categories.map((c) => [c.name, c.id]));
 
   /**
    * Marges individuelles.
@@ -179,7 +303,8 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    categories: categoryRows.length,
+    categories: categoryNames.length,
+    newCategories: newCategories.length,
     services: serviceRows.length,
     skipped: skippedCount,
     renameSupported: supportsRename,
