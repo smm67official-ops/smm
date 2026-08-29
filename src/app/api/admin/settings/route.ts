@@ -39,6 +39,7 @@ export async function PUT(request: NextRequest) {
   if (denied || !auth) return denied;
 
   let body: {
+    auto_submit_orders?: unknown;
     global_service_margin?: unknown;
     whatsapp_enabled?: unknown;
     whatsapp_message?: unknown;
@@ -60,6 +61,26 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: MARGIN_MESSAGE[margin.error], code: margin.error }, { status: 400 });
     }
     patch.global_service_margin = margin.margin;
+  }
+
+  /*
+    Envoi automatique des commandes.
+
+    Le réglage le plus lourd du panel : il décide si une commande part
+    réellement chez le fournisseur. L'activer sans clé d'API ne
+    produirait que des échecs, autant le refuser tout de suite.
+  */
+  if (body.auto_submit_orders !== undefined) {
+    if (typeof body.auto_submit_orders !== 'boolean') {
+      return NextResponse.json({ error: 'auto_submit_orders must be a boolean' }, { status: 400 });
+    }
+    if (body.auto_submit_orders && !process.env.SMMGEN_API_KEY) {
+      return NextResponse.json(
+        { error: 'SMMGEN_API_KEY is not configured — orders would all fail.' },
+        { status: 409 }
+      );
+    }
+    patch.auto_submit_orders = body.auto_submit_orders;
   }
 
   if (body.whatsapp_enabled !== undefined) {
@@ -103,9 +124,17 @@ export async function PUT(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
+    /*
+      Nommer la BONNE migration.
+
+      Un message générique renvoyait vers la 011 même quand la colonne
+      absente venait de la 012 : on part exécuter un script déjà appliqué,
+      et le problème reste entier.
+    */
     if (/does not exist|schema cache/i.test(error.message)) {
+      const missing = /auto_submit_orders/i.test(error.message) ? '012' : '011';
       return NextResponse.json(
-        { error: 'Settings need migration 011 — run it in the Supabase SQL editor.' },
+        { error: `Settings need migration ${missing} — run it in the Supabase SQL editor.` },
         { status: 409 }
       );
     }

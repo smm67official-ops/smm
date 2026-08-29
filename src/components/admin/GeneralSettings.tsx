@@ -41,6 +41,58 @@ export default function GeneralSettings({
   const [confirmApply, setConfirmApply] = useState(false);
   const [resetCustoms, setResetCustoms] = useState(true);
 
+  /** Envoi automatique : état courant, confirmation, solde fournisseur. */
+  const [autoSubmit, setAutoSubmit] = useState(settings.auto_submit_orders);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [provider, setProvider] = useState<{ balance: number | null; status: string } | null>(null);
+
+  /**
+   * Ouvre la confirmation, et va chercher le solde fournisseur.
+   *
+   * C'est le chiffre qui décide : activer l'envoi avec un compte à zéro
+   * ne produit que des commandes refusées. Autant le montrer avant, pas
+   * après.
+   */
+  const askAutoSubmit = async () => {
+    setProvider(null);
+    setConfirmSubmit(true);
+
+    const response = await fetch('/api/admin/balance');
+    const result = await response.json().catch(() => null);
+    if (response.ok && result) {
+      setProvider({ balance: result.provider?.balance ?? null, status: result.provider?.status ?? 'ERROR' });
+    }
+  };
+
+  const saveAutoSubmit = async () => {
+    const next = !autoSubmit;
+    setBusy(true);
+
+    const response = await fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auto_submit_orders: next }),
+    });
+    const result = await response.json().catch(() => ({}));
+    setBusy(false);
+    setConfirmSubmit(false);
+
+    if (!response.ok) {
+      toast({ tone: 'error', title: 'Could not change', description: result.error });
+      return;
+    }
+
+    setAutoSubmit(next);
+    toast({
+      tone: next ? 'success' : 'info',
+      title: next ? 'Orders are now sent to SMMGen' : 'Order submission paused',
+      description: next
+        ? 'New orders go to the provider immediately.'
+        : 'Orders are still recorded and charged, but not delivered.',
+    });
+    router.refresh();
+  };
+
   const saveWidget = async () => {
     setBusy(true);
 
@@ -210,6 +262,46 @@ export default function GeneralSettings({
         </div>
       </section>
 
+      {/* ---------------- Envoi des commandes ---------------- */}
+      <section className="gp-card">
+        <header className="gp-card-head">
+          <div>
+            <p className="gp-card-head__eyebrow">Orders</p>
+            <h3 className="gp-card-head__title">Send orders to SMMGen</h3>
+            <p className="gp-card-head__desc">
+              When off, orders are recorded and the client is charged, but nothing reaches the
+              provider — so nothing is delivered.
+            </p>
+          </div>
+          <div className="gp-hero__actions">
+            <span className={`gp-pill ${autoSubmit ? 'gp-pill--success' : 'gp-pill--warning'}`}>
+              <span className="gp-pill__dot" />
+              {autoSubmit ? 'Sending' : 'Paused'}
+            </span>
+          </div>
+        </header>
+
+        <div className="gp-form-grid">
+          <label className="gp-form-toggle gp-form-grid__full" onClick={(e) => e.preventDefault()}>
+            <input type="checkbox" checked={autoSubmit} readOnly />
+            <span className="gp-form-toggle__text">
+              <span className="gp-form-toggle__title">Automatic submission</span>
+              <span className="gp-form-toggle__hint">
+                {autoSubmit
+                  ? 'Every new order is sent to SMMGen straight away and spends your provider balance.'
+                  : 'Orders wait in the panel. Customers are charged but receive nothing until you turn this on.'}
+              </span>
+            </span>
+          </label>
+
+          <div className="gp-form-grid__full">
+            <Button size="sm" variant={autoSubmit ? 'ghost' : 'primary'} onClick={askAutoSubmit}>
+              {autoSubmit ? 'Pause submission' : 'Start sending orders'}
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* ---------------- Marge ---------------- */}
       <section className="gp-card">
         <header className="gp-card-head">
@@ -258,6 +350,64 @@ export default function GeneralSettings({
           </Button>
         </div>
       </section>
+
+      {/*
+        Confirmation de l'envoi automatique.
+
+        Le réglage engage de l'argent réel : la boîte annonce ce qui
+        change, et rappelle le solde fournisseur — activer l'envoi avec un
+        compte à zéro ne produirait que des commandes refusées.
+      */}
+      <Modal
+        open={confirmSubmit}
+        onClose={() => setConfirmSubmit(false)}
+        title={autoSubmit ? 'Pause order submission?' : 'Start sending orders to SMMGen?'}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmSubmit(false)}>
+              Cancel
+            </Button>
+            <Button loading={busy} onClick={saveAutoSubmit}>
+              {autoSubmit ? 'Pause' : 'Start sending'}
+            </Button>
+          </>
+        }
+      >
+        <div className="sv-stack" style={{ gap: 'var(--sv-space-3)' }}>
+          {autoSubmit ? (
+            <p className="gp-card-head__desc" style={{ margin: 0 }}>
+              New orders will be recorded and charged to the customer, but not sent to the provider —
+              so nothing will be delivered until you turn this back on. Orders already sent are
+              unaffected.
+            </p>
+          ) : (
+            <>
+              <p className="gp-card-head__desc" style={{ margin: 0 }}>
+                Every new order will be forwarded to SMMGen immediately and will spend your provider
+                balance. There is no review step in between.
+              </p>
+
+              <div className="gp-card__inner">
+                <p className="gp-card-head__eyebrow">SMMGen balance</p>
+                <p className="gp-stat-card__value">
+                  {provider === null
+                    ? 'checking…'
+                    : provider.balance === null
+                      ? 'unavailable'
+                      : `$${provider.balance.toFixed(2)}`}
+                </p>
+              </div>
+
+              {provider !== null && (provider.balance ?? 0) <= 0 && (
+                <p className="tm-alert tm-alert-error" role="alert" style={{ margin: 0 }}>
+                  Your provider balance is empty. Orders will be rejected by SMMGen — the customer is
+                  refunded automatically, but nothing is delivered. Fund the account first.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </Modal>
 
       {/* Confirmation : l'action touche tout le catalogue d'un coup. */}
       <Modal

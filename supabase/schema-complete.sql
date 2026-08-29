@@ -1,7 +1,7 @@
 -- =============================================================
 --  SMM67 — schéma complet
 --
---  Regroupe schema.sql et les migrations 002 à 011 en un seul script.
+--  Regroupe schema.sql et les migrations 002 à 012 en un seul script.
 --
 --  À exécuter dans Supabase Studio > SQL Editor.
 --
@@ -1378,6 +1378,11 @@ create table if not exists public.app_settings (
   whatsapp_greeting text,
   whatsapp_position text not null default 'bottom-right'
     check (whatsapp_position in ('bottom-right', 'bottom-left')),
+
+  -- --- Envoi des commandes ----------------------------------------
+  -- `false` par défaut : pour un réglage qui engage de l'argent réel,
+  -- le défaut doit être l'inaction.
+  auto_submit_orders boolean not null default false,
 
   updated_at timestamptz not null default now(),
   updated_by uuid references auth.users (id) on delete set null

@@ -135,6 +135,8 @@ export type AppSettings = {
   whatsapp_message: string | null;
   whatsapp_greeting: string | null;
   whatsapp_position: 'bottom-right' | 'bottom-left';
+  /** true = les commandes partent chez le fournisseur (migration 012). */
+  auto_submit_orders: boolean;
   updated_at: string;
   updated_by: string | null;
 };

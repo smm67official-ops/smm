@@ -182,6 +182,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   whatsapp_message: null,
   whatsapp_greeting: null,
   whatsapp_position: 'bottom-right',
+  /*
+    Repli sur la variable d'environnement tant que la migration 012 n'est
+    pas appliquée : l'envoi ne doit pas changer d'état du seul fait d'une
+    mise à jour du code.
+  */
+  auto_submit_orders: process.env.SMM_AUTO_SUBMIT === 'true',
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -243,4 +249,16 @@ export async function getWhatsAppWidget(locale = 'fr'): Promise<WidgetConfig | n
     greeting: settings.whatsapp_greeting?.trim() || null,
     position: settings.whatsapp_position,
   };
+}
+
+
+/**
+ * L'envoi automatique est-il actif ?
+ *
+ * Deux conditions, et la seconde n'est pas négociable : sans clé d'API,
+ * activer l'envoi ne produirait que des commandes en échec.
+ */
+export async function isAutoSubmitEnabled(): Promise<boolean> {
+  const settings = await getAppSettings();
+  return settings.auto_submit_orders && Boolean(process.env.SMMGEN_API_KEY);
 }

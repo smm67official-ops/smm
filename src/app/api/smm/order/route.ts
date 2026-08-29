@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { classifyProviderError, PROVIDER_ERROR_MESSAGE } from '@/lib/orders';
 import { getBalance, walletApply } from '@/lib/wallet';
+import { isAutoSubmitEnabled } from '@/lib/settings';
 import { isValidWhatsApp, normalizeWhatsApp } from '@/lib/whatsapp';
 import type { Service } from '@/lib/supabase/types';
 
@@ -213,7 +214,12 @@ export async function POST(request: NextRequest) {
   }
 
   // 5. Envoi fournisseur (désactivé par défaut).
-  const autoSubmit = process.env.SMM_AUTO_SUBMIT === 'true' && Boolean(process.env.SMMGEN_API_KEY);
+  /*
+    L'interrupteur vit dans les réglages, plus dans l'environnement :
+    le basculer ne demande plus de redéploiement, et son état est
+    visible dans le back-office.
+  */
+  const autoSubmit = await isAutoSubmitEnabled();
   const provider = autoSubmit ? new SmmGen() : null;
 
   let submitted = 0;
