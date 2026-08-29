@@ -146,25 +146,30 @@ export default function GeneralSettings({
           </div>
         </header>
 
-        <div className="gp-filters__grid" style={{ padding: '0 var(--sv-space-5) var(--sv-space-5)' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--sv-space-2)' }}>
+        <div className="gp-form-grid">
+          {/* Interrupteur en tête : c'est lui qui décide si le reste
+              sert à quelque chose. */}
+          <label className="gp-form-toggle gp-form-grid__full">
             <input
               type="checkbox"
               checked={form.whatsapp_enabled}
               onChange={(e) => setForm({ ...form, whatsapp_enabled: e.target.checked })}
             />
-            <span>Enable WhatsApp widget</span>
+            <span className="gp-form-toggle__text">
+              <span className="gp-form-toggle__title">Enable WhatsApp widget</span>
+              <span className="gp-form-toggle__hint">
+                {activeNumber
+                  ? 'The floating button appears on every public page.'
+                  : 'Add and activate a number above for the button to appear.'}
+              </span>
+            </span>
           </label>
 
           <Input
             label="Active number"
             value={activeNumber ? formatWhatsApp(activeNumber) : 'No active number'}
             readOnly
-            hint={
-              activeNumber
-                ? 'Set in WhatsApp numbers above.'
-                : 'Without an active number the widget stays hidden.'
-            }
+            hint="Set in WhatsApp numbers above."
           />
 
           <Select
@@ -179,25 +184,29 @@ export default function GeneralSettings({
             ]}
           />
 
-          <Textarea
-            label="Default message"
-            optional
-            rows={2}
-            value={form.whatsapp_message}
-            onChange={(e) => setForm({ ...form, whatsapp_message: e.target.value })}
-            placeholder="Bonjour, j'aimerais avoir plus d'informations."
-            hint="Pre-filled in WhatsApp. Left empty, a translated default is used."
-          />
+          <div className="gp-form-grid__full">
+            <Textarea
+              label="Default message"
+              optional
+              rows={3}
+              value={form.whatsapp_message}
+              onChange={(e) => setForm({ ...form, whatsapp_message: e.target.value })}
+              placeholder="Bonjour, j'aimerais avoir plus d'informations."
+              hint="Pre-filled in WhatsApp. Left empty, a translated default is used."
+            />
+          </div>
 
-          <Textarea
-            label="Greeting bubble"
-            optional
-            rows={2}
-            value={form.whatsapp_greeting}
-            onChange={(e) => setForm({ ...form, whatsapp_greeting: e.target.value })}
-            placeholder="Une question ? Nous répondons en quelques minutes."
-            hint="Shown before opening WhatsApp. Empty = the button opens WhatsApp directly."
-          />
+          <div className="gp-form-grid__full">
+            <Textarea
+              label="Greeting bubble"
+              optional
+              rows={3}
+              value={form.whatsapp_greeting}
+              onChange={(e) => setForm({ ...form, whatsapp_greeting: e.target.value })}
+              placeholder="Une question ? Nous répondons en quelques minutes."
+              hint="Shown before opening WhatsApp. Empty = the button opens WhatsApp directly."
+            />
+          </div>
         </div>
       </section>
 
@@ -214,7 +223,7 @@ export default function GeneralSettings({
           </div>
         </header>
 
-        <div className="gp-filters__grid" style={{ padding: '0 var(--sv-space-5) var(--sv-space-5)' }}>
+        <div className="gp-form-grid">
           <Input
             label="Margin (%)"
             type="number"

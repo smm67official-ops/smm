@@ -782,3 +782,59 @@ a.gp-pill:hover { border-color: var(--gp-brand); color: var(--gp-brand-dark); }
 
 /* Page de connexion admin : même dégradé que le site */
 .sv-root .sv-btn--primary { color: inherit; }
+
+/* ---------------------------------------------------------------------
+   Grille de formulaire
+
+   `.gp-filters__grid` aligne ses éléments sur le BAS (`align-items: end`),
+   ce qui convient à une barre de filtres où tous les contrôles ont la
+   même hauteur. Dans un formulaire mêlant champs, listes et zones de
+   texte, ce même alignement disperse les libellés à des hauteurs
+   différentes et rend la lecture impossible.
+
+   Ici les éléments s'alignent sur le HAUT : les libellés forment une
+   ligne, quelle que soit la hauteur du champ dessous.
+--------------------------------------------------------------------- */
+.gp-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px 20px;
+  align-items: start;
+  padding: 0 var(--sv-space-5, 20px) var(--sv-space-5, 20px);
+}
+
+/* Occupe toute la largeur : cases à cocher et zones de texte longues,
+   qu'une demi-colonne rendrait illisibles. */
+.gp-form-grid__full { grid-column: 1 / -1; }
+
+/* Ligne d'activation : la case et son libellé sur une seule ligne,
+   séparés du reste par un filet. */
+.gp-form-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--gp-border, #e4e6ea);
+  border-radius: 10px;
+  background: var(--gp-surface-alt, #f8f9fb);
+  cursor: pointer;
+}
+
+.gp-form-toggle input { margin-top: 3px; flex: 0 0 auto; }
+
+.gp-form-toggle__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gp-form-toggle__title { font-weight: 600; font-size: 14px; }
+
+.gp-form-toggle__hint {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+/* Les zones de texte de réglages respirent : deux lignes forçaient une
+   barre de défilement dès la première phrase. */
+.gp-form-grid textarea { min-height: 84px; resize: vertical; }
+
+@media (max-width: 700px) {
+  .gp-form-grid { grid-template-columns: 1fr; gap: 16px; }
+}
