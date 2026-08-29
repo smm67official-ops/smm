@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 import Icon from '@/design-system/components/Icon';
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock';
 
 export type ModalProps = {
   open: boolean;
@@ -41,12 +42,11 @@ export default function Modal({ open, onClose, title, description, children, foo
     };
 
     document.addEventListener('keydown', onKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
     };
   }, [open]);
 

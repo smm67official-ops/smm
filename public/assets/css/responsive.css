@@ -13,7 +13,37 @@
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden;
+
+  /*
+    `clip` et non `hidden`.
+
+    `overflow: hidden` crée un CONTENEUR DE DÉFILEMENT. Or un tel
+    conteneur désactive `position: sticky` pour tous ses descendants :
+    la barre latérale de l'administration, pourtant déclarée
+    `sticky; top: 0`, défilait avec la page et disparaissait vers le
+    haut.
+
+    `clip` coupe ce qui dépasse sans créer de conteneur de défilement.
+    L'intention d'origine — aucune page ne défile horizontalement — est
+    respectée, et `sticky` refonctionne.
+
+    À noter : on ne peut PAS écrire `overflow-x: hidden; overflow-y:
+    visible`. Quand un axe est coupé, l'autre passe automatiquement de
+    `visible` à `auto` — le conteneur de défilement réapparaît, et le
+    problème avec lui. `clip` est la seule sortie.
+  */
+  overflow-x: clip;
+}
+
+/*
+  Le thème acheté impose `body { overflow: hidden !important }`.
+  La règle vise le défilement horizontal, mais coupe les DEUX axes et
+  s'applique au conteneur qui casse `sticky`. On la neutralise ici,
+  avec la même arme puisqu'elle en use.
+*/
+body {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
 }
 
 *,
@@ -512,4 +542,15 @@ button.tm-button.tm-button-white:hover {
   .tm-footer {
     display: none !important;
   }
+}
+
+/*
+  Défilement bloqué derrière une surface modale.
+
+  Plus spécifique que la règle `body` ci-dessus, donc elle l'emporte —
+  c'est nécessaire, les deux portent `!important` pour neutraliser le
+  thème. Posée par `src/lib/scroll-lock.ts`.
+*/
+body.sv-scroll-locked {
+  overflow-y: hidden !important;
 }

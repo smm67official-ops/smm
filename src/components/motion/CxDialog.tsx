@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { modalClose, modalOpen, sheetClose, sheetOpen } from '@/lib/motion/presets';
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock';
 
 /**
  * Boîte de dialogue de l'espace client.
@@ -61,12 +62,11 @@ export default function CxDialog({
     // et la tabulation reste dans la boîte.
     panel.focus({ preventScroll: true });
 
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 
     return () => {
       timeline.kill();
-      document.body.style.overflow = previous;
+      unlockScroll();
     };
   }, [open, mounted]);
 

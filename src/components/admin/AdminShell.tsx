@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Avatar, Button, Icon, type IconName } from '@/design-system';
 import { createClient } from '@/lib/supabase/client';
 import { BRAND } from '@/lib/brand';
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock';
 
 const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '', label: 'Dashboard', icon: 'grid' },
@@ -43,14 +44,13 @@ export default function AdminShell({
   // Tiroir ouvert = page figée derrière, et Échap pour sortir.
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
     document.addEventListener('keydown', onKey);
     return () => {
-      document.body.style.overflow = previous;
+      unlockScroll();
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
