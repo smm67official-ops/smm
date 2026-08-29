@@ -83,7 +83,12 @@ export default async function AdminServicesPage({
           <GpFilters
             basePath={basePath}
             fields={[
-              { type: 'search', name: 'q', label: 'Search', placeholder: 'Service name…' },
+              {
+              type: 'search',
+              name: 'q',
+              label: 'Search',
+              placeholder: 'Name, provider label, or SMMGen ID (e.g. 19574)',
+            },
               {
                 type: 'select',
                 name: 'platform',

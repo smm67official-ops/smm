@@ -126,11 +126,6 @@ export default function AdminServicesTable({
     router.refresh();
   };
 
-  const margin = (service: Service) => {
-    const cost = Number(service.provider_rate);
-    if (!cost) return '—';
-    return `${(((Number(service.rate) - cost) / cost) * 100).toFixed(0)}%`;
-  };
 
   return (
     <>
@@ -138,14 +133,16 @@ export default function AdminServicesTable({
         <table className="gp-table rs-table">
           <thead>
             <tr>
-              <th>ID</th>
+              {/* Identifiant chez le fournisseur : c'est par lui qu'on
+                  retrouve un service dans le panel SMMGen ou qu'on le
+                  cite à leur support. */}
+              <th className="gp-table__num">SMMGen ID</th>
               <th>Service</th>
               <th>Type</th>
               <th className="gp-table__num">Cost / 1000</th>
               <th className="gp-table__num">Margin</th>
-              <th>Type</th>
+              <th>Margin type</th>
               <th className="gp-table__num">Sell / 1000</th>
-              <th className="gp-table__num">Margin</th>
               <th className="gp-table__num">Min</th>
               <th className="gp-table__num">Max</th>
               <th>Flags</th>
@@ -157,7 +154,11 @@ export default function AdminServicesTable({
               const platform = platformOf(service.platform);
               return (
                 <tr key={service.id} style={service.is_active ? undefined : { opacity: 0.55 }}>
-                  <td className="gp-table__muted" data-label="ID">{service.provider_service_id}</td>
+                  <td className="gp-table__num" data-label="SMMGen ID">
+                    <span className="gp-table__strong" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {service.provider_service_id}
+                    </span>
+                  </td>
                   <td data-label="Service" className="rs-cell--head">
                     <Link href={`/${locale}/services/${service.id}`} className="gp-table__strong">
                       {service.name.length > 70 ? `${service.name.slice(0, 70)}…` : service.name}
@@ -177,7 +178,7 @@ export default function AdminServicesTable({
                   <td className="gp-table__num" data-label="Margin">
                     {effectiveMargin(service, globalMargin).toFixed(2)}%
                   </td>
-                  <td data-label="Type">
+                  <td data-label="Margin type">
                     <span
                       className={`gp-pill ${service.margin_mode === 'custom' ? 'gp-pill--brand' : 'gp-pill--neutral'}`}
                     >
@@ -196,7 +197,6 @@ export default function AdminServicesTable({
                       </span>
                     )}
                   </td>
-                  <td className="gp-table__num" data-label="Margin">{margin(service)}</td>
                   <td className="gp-table__num" data-label="Min">{service.min.toLocaleString()}</td>
                   <td className="gp-table__num" data-label="Max">{service.max.toLocaleString()}</td>
                   <td data-label="Flags">

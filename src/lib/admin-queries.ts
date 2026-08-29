@@ -261,7 +261,32 @@ export async function listAdminServices({
   const admin = createAdminClient();
 
   let query = admin.from('services').select('*', { count: 'exact' });
-  if (q) query = query.ilike('name', `%${q}%`);
+
+  /*
+    Recherche : nom affiché, libellé fournisseur, et identifiant SMMGen.
+
+    L'identifiant est ce que l'on a sous les yeux dans le panel du
+    fournisseur ou dans un échange avec son support ; le chercher par nom
+    est impossible quand le service a été renommé chez nous. On l'inclut
+    donc, mais seulement si la saisie est entièrement numérique — sinon
+    PostgREST rejetterait la comparaison `bigint = 'abc'` et la recherche
+    échouerait pour tout le monde.
+
+    `provider_name` couvre le cas inverse : retrouver un service par son
+    libellé d'origine après l'avoir renommé.
+
+    Les virgules et parenthèses sont retirées : `or()` les utilise comme
+    séparateurs, une saisie qui en contient casserait le filtre.
+  */
+  if (q) {
+    const term = q.trim().replace(/[,()]/g, ' ');
+
+    if (term) {
+      const filters = [`name.ilike.%${term}%`, `provider_name.ilike.%${term}%`];
+      if (/^\d+$/.test(term)) filters.push(`provider_service_id.eq.${term}`);
+      query = query.or(filters.join(','));
+    }
+  }
   if (platform && platform !== 'all') query = query.eq('platform', platform);
   if (status === 'active') query = query.eq('is_active', true);
   if (status === 'inactive') query = query.eq('is_active', false);
